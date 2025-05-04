@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { ChordType, Chord } from '@/utils/music'
 import AudioSystem from '@/utils/audioSystem'
 
@@ -17,19 +17,22 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   ';': { root: 'E', type: ChordType.MINOR },         // 高八度E小三和弦
   
   // 第一排按键 - 根音离调的三和弦
-  'w': { root: 'C#', type: ChordType.DIMINISHED },        // C#大三和弦
-  'e': { root: 'D#', type: ChordType.AUGMENTED },        // D#大三和弦
-  't': { root: 'F#', type: ChordType.DIMINISHED },        // F#大三和弦
-  'y': { root: 'G#', type: ChordType.DIMINISHED },        // G#大三和弦
-  'u': { root: 'A#', type: ChordType.MAJOR },        // A#大三和弦
-  'o': { root: 'C#', type: ChordType.DIMINISHED },        // 高八度C#大三和弦
-  'p': { root: 'D#', type: ChordType.DIMINISHED }         // 高八度D#大三和弦
+  'w': { root: 'C#', type: ChordType.DIMINISHED },
+  'e': { root: 'D#', type: ChordType.AUGMENTED },
+  't': { root: 'F#', type: ChordType.DIMINISHED },
+  'y': { root: 'G#', type: ChordType.DIMINISHED },
+  'u': { root: 'A#', type: ChordType.MAJOR },
+  'o': { root: 'C#', type: ChordType.DIMINISHED },
+  'p': { root: 'D#', type: ChordType.DIMINISHED }
 };
 
 // 默认八度
 const DEFAULT_OCTAVE = 4;
 // 对于高八度键的八度偏移
 const HIGH_OCTAVE_KEYS = ['k', 'l', ';', 'o', 'p'];
+
+// 持续播放的间隔时间（毫秒）
+const SUSTAIN_INTERVAL = 1000;
 
 export function useKeyboardHandler() {
   // 当前播放的和弦
@@ -41,6 +44,12 @@ export function useKeyboardHandler() {
     ctrl: false,
     alt: false
   });
+  
+  // 记录按下的键
+  const pressedKeys = reactive(new Set<string>());
+  
+  // 存储每个键的持续播放定时器
+  const sustainTimers = reactive(new Map<string, number>());
   
   // 音频系统
   const audioSystem = new AudioSystem();
@@ -93,9 +102,15 @@ export function useKeyboardHandler() {
     // 检查是否是和弦键
     const key = event.key.toLowerCase();
     if (KEY_TO_CHORD[key]) {
-      // 仅当不是重复触发时才播放
+      // 添加到按下的键集合
+      pressedKeys.add(key);
+      
+      // 仅当不是重复触发时才初始播放
       if (!event.repeat) {
         playChordForKey(key);
+        
+        // 设置持续播放定时器
+        startSustainTimer(key);
       }
       
       // 阻止默认行为（例如滚动）
@@ -112,8 +127,44 @@ export function useKeyboardHandler() {
       alt: event.altKey
     };
     
-    // 不需要立即响应键盘释放事件
-    // 声音会自动衰减
+    const key = event.key.toLowerCase();
+    
+    // 从按下的键集合中移除
+    pressedKeys.delete(key);
+    
+    // 停止该键的持续播放
+    stopSustainTimer(key);
+    
+    // 如果所有键都松开了，停止所有声音
+    if (pressedKeys.size === 0) {
+      stopAllSounds();
+    }
+  }
+  
+  // 设置持续播放定时器
+  function startSustainTimer(key: string) {
+    // 先清除可能存在的定时器
+    stopSustainTimer(key);
+    
+    // 设置新的定时器，每隔一段时间重新触发和弦
+    const timerId = window.setInterval(() => {
+      if (pressedKeys.has(key)) {
+        playChordForKey(key);
+      } else {
+        stopSustainTimer(key);
+      }
+    }, SUSTAIN_INTERVAL);
+    
+    sustainTimers.set(key, timerId);
+  }
+  
+  // 停止持续播放定时器
+  function stopSustainTimer(key: string) {
+    const timerId = sustainTimers.get(key);
+    if (timerId) {
+      clearInterval(timerId);
+      sustainTimers.delete(key);
+    }
   }
   
   // 为指定的键播放和弦
@@ -142,8 +193,8 @@ export function useKeyboardHandler() {
     // 重新计算和弦的音符
     chord.notes = chord.calculateChordNotes();
     
-    // 播放和弦
-    audioSystem.playChord(chord);
+    // 播放和弦 - 持续时间设置为较长，避免音效衰减太快
+    audioSystem.playChord(chord, '2n');
     
     // 更新当前和弦
     currentChord.value = chord;
@@ -153,6 +204,12 @@ export function useKeyboardHandler() {
   function stopAllSounds() {
     audioSystem.stopAll();
     currentChord.value = null;
+    
+    // 清除所有定时器
+    sustainTimers.forEach((timerId) => {
+      clearInterval(timerId);
+    });
+    sustainTimers.clear();
   }
   
   // 生命周期钩子
@@ -179,6 +236,7 @@ export function useKeyboardHandler() {
     currentChord,
     modifiers,
     audioSystem,
-    chordMapping: KEY_TO_CHORD
+    chordMapping: KEY_TO_CHORD,
+    pressedKeys
   };
 } 

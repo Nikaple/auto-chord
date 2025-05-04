@@ -52,14 +52,31 @@ npm run test
 
 使用键盘上的按键来播放和弦：
 
-- **A, S, D, F, G, H, J, K, L**：播放对应的音符
-- **W, E, T, Y, U, O, P**：播放对应的黑键音符
-- **Shift**：将和弦转为小调
-- **Ctrl**：将和弦转为suspended fourth (sus4)
-- **Alt**：将和弦转为suspended second (sus2)
-- **Shift + Ctrl**：播放属七和弦 (dominant seventh)
-- **Shift + Alt**：播放大七和弦 (major seventh)
-- **Ctrl + Alt**：播放小七和弦 (minor seventh)
+### 第二排键位 (A-L) 映射到C大调的基础和弦：
+- **A**: C大调 (I级)
+- **S**: D小调 (ii级)
+- **D**: E小调 (iii级)
+- **F**: F大调 (IV级)
+- **G**: G大调 (V级)
+- **H**: A小调 (vi级)
+- **J**: B减七 (viio级)
+
+### 第一排键位 (W/E/T/Y/U/O/P) 映射到特殊和弦：
+- **W**: C#减三和弦
+- **E**: D#增三和弦
+- **T**: F#减三和弦
+- **Y**: G#减三和弦
+- **U**: A#大三和弦
+- **O**: C#减三和弦 (高八度)
+- **P**: D#减三和弦 (高八度)
+
+### 修饰键组合：
+- **Shift**: 转换大小调性质（大调变小调，小调变大调）
+- **Ctrl**: 将和弦转为suspended fourth (sus4)
+- **Alt**: 将和弦转为suspended second (sus2)
+- **Shift + Ctrl**: 播放属七和弦 (dominant seventh)
+- **Shift + Alt**: 播放大七和弦 (major seventh)
+- **Ctrl + Alt**: 播放小七和弦 (minor seventh)
 
 ## 许可
 

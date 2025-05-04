@@ -15,11 +15,14 @@ export default class AudioSystem {
   private defaultSettings: AudioSettings = {
     volume: 0.7,
     attack: 0.05,
-    decay: 0.1,
-    sustain: 0.3,
-    release: 1,
+    decay: 0.3,         // 增加衰减时间
+    sustain: 0.8,       // 增加延音级别，使声音保持更长时间
+    release: 2,         // 增加释放时间
     oscillatorType: 'triangle'
   };
+
+  // 存储当前正在播放的音符
+  private activeNotes: Set<number | string> = new Set();
 
   constructor() {
     // 初始化Tone.js
@@ -46,32 +49,70 @@ export default class AudioSystem {
         decay: currentSettings.decay,
         sustain: currentSettings.sustain,
         release: currentSettings.release
-      },
-      oscillator: {
-        type: currentSettings.oscillatorType as Tone.ToneOscillatorType
       }
     });
+    
+    // 单独设置振荡器类型，避免类型错误
+    this.synth.set({
+      oscillator: {
+        type: currentSettings.oscillatorType
+      }
+    } as any);
   }
 
   // 播放单个音符
   playNote(note: Note, duration: string = '4n'): void {
+    // 先停止该音符以避免重叠
+    if (this.activeNotes.has(note.frequency)) {
+      this.synth.triggerRelease(note.frequency);
+    }
+    
+    // 添加到活跃音符集合
+    this.activeNotes.add(note.frequency);
+    
+    // 播放音符
     this.synth.triggerAttackRelease(note.frequency, duration);
   }
 
   // 播放和弦
-  playChord(chord: Chord, duration: string = '4n'): void {
+  playChord(chord: Chord, duration: string = '2n'): void {
     const frequencies = chord.frequencies;
+    
+    // 停止当前活跃的音符以避免叠加
+    this.stopActiveNotes();
+    
+    // 添加到活跃音符集合
+    frequencies.forEach(freq => this.activeNotes.add(freq));
+    
+    // 播放和弦 - 使用较长的持续时间
     this.synth.triggerAttackRelease(frequencies, duration);
   }
 
   // 通过音符名称播放和弦
-  playChordByNotes(noteNames: string[], duration: string = '4n'): void {
+  playChordByNotes(noteNames: string[], duration: string = '2n'): void {
+    // 停止当前活跃的音符
+    this.stopActiveNotes();
+    
+    // 添加到活跃音符集合
+    noteNames.forEach(note => this.activeNotes.add(note));
+    
+    // 播放和弦
     this.synth.triggerAttackRelease(noteNames, duration);
+  }
+
+  // 停止特定的活跃音符
+  private stopActiveNotes(): void {
+    if (this.activeNotes.size > 0) {
+      const notesToRelease = Array.from(this.activeNotes);
+      this.synth.triggerRelease(notesToRelease);
+      this.activeNotes.clear();
+    }
   }
 
   // 停止所有声音
   stopAll(): void {
     this.synth.releaseAll();
+    this.activeNotes.clear();
   }
   
   // 获取当前设置

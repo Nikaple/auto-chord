@@ -29,13 +29,15 @@
         <span><strong>H</strong>: A小调</span>
         <span><strong>J</strong>: B减七</span>
       </div>
-      <p>第一排键位 (W/E/T/Y/U/O/P) 映射到黑键音符的大三和弦</p>
+      <p>第一排键位 (W/E/T/Y/U/O/P) 映射到特殊和弦：</p>
       <div class="chord-map">
-        <span><strong>W</strong>: C#大调</span>
-        <span><strong>E</strong>: D#大调</span>
-        <span><strong>T</strong>: F#大调</span>
-        <span><strong>Y</strong>: G#大调</span>
+        <span><strong>W</strong>: C#减三</span>
+        <span><strong>E</strong>: D#增三</span>
+        <span><strong>T</strong>: F#减三</span>
+        <span><strong>Y</strong>: G#减三</span>
         <span><strong>U</strong>: A#大调</span>
+        <span><strong>O</strong>: C#减三</span>
+        <span><strong>P</strong>: D#减三</span>
       </div>
       <p>使用修饰键改变和弦类型：</p>
       <ul>
