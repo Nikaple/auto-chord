@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted, reactive } from 'vue'
+import { ref, onMounted, onUnmounted, reactive, computed } from 'vue'
 import { ChordType, Chord } from '@/utils/music'
 import AudioSystem from '@/utils/audioSystem'
 
@@ -16,14 +16,23 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   'l': { root: 'D', type: ChordType.MINOR },         // 高八度D小三和弦
   ';': { root: 'E', type: ChordType.MINOR },         // 高八度E小三和弦
   
-  // 第一排按键 - 根音离调的三和弦
-  'w': { root: 'C#', type: ChordType.DIMINISHED },
-  'e': { root: 'D#', type: ChordType.AUGMENTED },
-  't': { root: 'F#', type: ChordType.DIMINISHED },
-  'y': { root: 'G#', type: ChordType.DIMINISHED },
-  'u': { root: 'A#', type: ChordType.MAJOR },
-  'o': { root: 'C#', type: ChordType.DIMINISHED },
-  'p': { root: 'D#', type: ChordType.DIMINISHED }
+  // 第一排按键 - 根音离调的和弦
+  'w': { root: 'C#', type: ChordType.DIMINISHED },   // C#减三和弦
+  'e': { root: 'D#', type: ChordType.AUGMENTED },    // D#增三和弦
+  't': { root: 'F#', type: ChordType.DIMINISHED },   // F#减三和弦
+  'y': { root: 'G#', type: ChordType.DIMINISHED },   // G#减三和弦
+  'u': { root: 'A#', type: ChordType.MAJOR },        // A#大三和弦
+  'o': { root: 'C#', type: ChordType.DIMINISHED },   // 高八度C#减三和弦
+  'p': { root: 'D#', type: ChordType.DIMINISHED },   // 高八度D#减三和弦
+  
+  // 第三排按键 - C大调常见七和弦
+  'z': { root: 'C', type: ChordType.MAJOR_SEVENTH },       // Cmaj7 (I7)
+  'x': { root: 'D', type: ChordType.MINOR_SEVENTH },       // Dm7 (ii7)
+  'c': { root: 'E', type: ChordType.MINOR_SEVENTH },       // Em7 (iii7)
+  'v': { root: 'F', type: ChordType.MAJOR_SEVENTH },       // Fmaj7 (IV7)
+  'b': { root: 'G', type: ChordType.DOMINANT_SEVENTH },    // G7 (V7)
+  'n': { root: 'A', type: ChordType.MINOR_SEVENTH },       // Am7 (vi7)
+  'm': { root: 'B', type: ChordType.MINOR_SEVENTH }        // Bm7b5 (viio7) - 实际为半减七和弦
 };
 
 // 默认八度
@@ -47,6 +56,9 @@ export function useKeyboardHandler() {
   
   // 记录按下的键
   const pressedKeys = reactive(new Set<string>());
+  
+  // 当前活跃的键（用于UI显示）
+  const activeKeys = computed(() => Array.from(pressedKeys));
   
   // 存储每个键的持续播放定时器
   const sustainTimers = reactive(new Map<string, number>());
@@ -92,52 +104,36 @@ export function useKeyboardHandler() {
   
   // 处理键盘按下事件
   function handleKeyDown(event: KeyboardEvent) {
-    // 更新修饰符状态
-    modifiers.value = {
-      shift: event.shiftKey,
-      ctrl: event.ctrlKey,
-      alt: event.altKey
-    };
+    if (event.repeat || !KEY_TO_CHORD[event.key.toLowerCase()]) return;
     
-    // 检查是否是和弦键
     const key = event.key.toLowerCase();
-    if (KEY_TO_CHORD[key]) {
-      // 添加到按下的键集合
+    
+    // 如果按键已经在激活列表中，则不重复添加
+    if (!pressedKeys.has(key)) {
       pressedKeys.add(key);
-      
-      // 仅当不是重复触发时才初始播放
-      if (!event.repeat) {
-        playChordForKey(key);
-        
-        // 设置持续播放定时器
-        startSustainTimer(key);
-      }
-      
-      // 阻止默认行为（例如滚动）
-      event.preventDefault();
     }
+    
+    const baseChord = KEY_TO_CHORD[key];
+    if (!baseChord) return;
+    
+    // 应用修饰键
+    const modifiedChord = applyModifiers(baseChord);
+    
+    currentChord.value = modifiedChord;
+    audioSystem.playChord(modifiedChord);
   }
   
   // 处理键盘松开事件
   function handleKeyUp(event: KeyboardEvent) {
-    // 更新修饰符状态
-    modifiers.value = {
-      shift: event.shiftKey,
-      ctrl: event.ctrlKey,
-      alt: event.altKey
-    };
-    
     const key = event.key.toLowerCase();
     
-    // 从按下的键集合中移除
+    // 从pressedKeys中移除当前释放的键
     pressedKeys.delete(key);
     
-    // 停止该键的持续播放
-    stopSustainTimer(key);
-    
-    // 如果所有键都松开了，停止所有声音
+    // 如果没有其他键处于活跃状态，则停止当前和弦
     if (pressedKeys.size === 0) {
-      stopAllSounds();
+      currentChord.value = null;
+      audioSystem.stopAll();
     }
   }
   
@@ -200,18 +196,6 @@ export function useKeyboardHandler() {
     currentChord.value = chord;
   }
   
-  // 停止所有声音
-  function stopAllSounds() {
-    audioSystem.stopAll();
-    currentChord.value = null;
-    
-    // 清除所有定时器
-    sustainTimers.forEach((timerId) => {
-      clearInterval(timerId);
-    });
-    sustainTimers.clear();
-  }
-  
   // 生命周期钩子
   onMounted(() => {
     // 添加事件监听器
@@ -219,17 +203,23 @@ export function useKeyboardHandler() {
     window.addEventListener('keyup', handleKeyUp);
     
     // 页面失去焦点时停止所有声音
-    window.addEventListener('blur', stopAllSounds);
+    window.addEventListener('blur', () => {
+      currentChord.value = null;
+      audioSystem.stopAll();
+    });
   });
   
   onUnmounted(() => {
     // 移除事件监听器
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
-    window.removeEventListener('blur', stopAllSounds);
+    window.removeEventListener('blur', () => {
+      currentChord.value = null;
+      audioSystem.stopAll();
+    });
     
     // 停止所有声音
-    stopAllSounds();
+    audioSystem.stopAll();
   });
   
   return {
@@ -237,6 +227,7 @@ export function useKeyboardHandler() {
     modifiers,
     audioSystem,
     chordMapping: KEY_TO_CHORD,
-    pressedKeys
+    pressedKeys,
+    activeKeys
   };
 } 

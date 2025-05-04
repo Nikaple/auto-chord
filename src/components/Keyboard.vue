@@ -1,24 +1,40 @@
 <template>
   <div class="keyboard-container">
-    <div class="keyboard">
-      <!-- 使用特定的键盘布局排序 -->
-      <div 
-        v-for="key in keyboardOrder" 
-        :key="key"
-        class="key" 
-        :class="{ 
-          'black-key': isBlackKey(chordMapping[key]?.root), 
-          'white-key': !isBlackKey(chordMapping[key]?.root),
-          'active': isKeyActive(chordMapping[key]?.root)
-        }"
-        @mousedown="playChord(chordMapping[key])">
-        <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
-        <span class="key-label">{{ key.toUpperCase() }}</span>
+    <div class="piano-layout">
+      <!-- 标准钢琴键盘（第一、二排） -->
+      <div class="keyboard">
+        <div 
+          v-for="key in pianoKeys" 
+          :key="key"
+          class="key" 
+          :class="{ 
+            'black-key': isBlackKey(chordMapping[key]?.root), 
+            'white-key': !isBlackKey(chordMapping[key]?.root),
+            'active': isKeyActive(key)
+          }"
+          @mousedown="playChord(chordMapping[key])">
+          <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+          <span class="key-label">{{ key.toUpperCase() }}</span>
+        </div>
+      </div>
+      
+      <!-- 第三排 七和弦 -->
+      <div class="keyboard-row">
+        <div 
+          v-for="key in thirdRowKeys" 
+          :key="key"
+          class="key seventh-key" 
+          :class="{ 'active': isKeyActive(key) }"
+          @mousedown="playChord(chordMapping[key])">
+          <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+          <span class="key-label">{{ key.toUpperCase() }}</span>
+        </div>
       </div>
     </div>
     
     <div class="keyboard-help">
       <p>按住键盘上相应的字母键播放和弦。</p>
+      
       <p>第二排键位 (A-L) 映射到C大调的基础和弦：</p>
       <div class="chord-map">
         <span><strong>A</strong>: C大调</span>
@@ -29,6 +45,7 @@
         <span><strong>H</strong>: A小调</span>
         <span><strong>J</strong>: B减七</span>
       </div>
+      
       <p>第一排键位 (W/E/T/Y/U/O/P) 映射到特殊和弦：</p>
       <div class="chord-map">
         <span><strong>W</strong>: C#减三</span>
@@ -39,6 +56,18 @@
         <span><strong>O</strong>: C#减三</span>
         <span><strong>P</strong>: D#减三</span>
       </div>
+      
+      <p>第三排键位 (Z-M) 映射到C大调的七和弦：</p>
+      <div class="chord-map">
+        <span><strong>Z</strong>: Cmaj7</span>
+        <span><strong>X</strong>: Dm7</span>
+        <span><strong>C</strong>: Em7</span>
+        <span><strong>V</strong>: Fmaj7</span>
+        <span><strong>B</strong>: G7</span>
+        <span><strong>N</strong>: Am7</span>
+        <span><strong>M</strong>: Bm7b5</span>
+      </div>
+      
       <p>使用修饰键改变和弦类型：</p>
       <ul>
         <li><strong>Shift</strong>: 转换大小调性质</li>
@@ -57,10 +86,13 @@ import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { Chord, ChordType } from '@/utils/music';
 
 // 使用键盘处理器
-const { currentChord, chordMapping } = useKeyboardHandler();
+const { currentChord, chordMapping, activeKeys } = useKeyboardHandler();
 
-// 键盘按键排序，按照键盘物理位置排列，以正确显示黑白键
-const keyboardOrder = [
+// 第三排七和弦按键
+const thirdRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
+
+// 钢琴键盘布局 - 第一、二排
+const pianoKeys = [
   'a', 'w', 's', 'e', 'd', 'f', 't', 'g', 'y', 'h', 'u', 'j', 'k', 'o', 'l', 'p', ';'
 ];
 
@@ -95,15 +127,9 @@ function isBlackKey(noteName: string | undefined): boolean {
   return noteName.includes('#') || noteName.includes('b');
 }
 
-// 检查键是否活跃
-const isKeyActive = (noteName: string | undefined) => {
-  if (!currentChord?.value || !noteName) return false;
-  
-  return currentChord.value.notes.some(chordNote => 
-    chordNote.name === noteName || 
-    // 处理同音异名的情况，例如C#和Db
-    (noteName.includes('#') && getNoteEquivalent(noteName) === chordNote.name)
-  );
+// 检查键是否活跃 - 修改为使用activeKeys而不是检查和弦音符
+const isKeyActive = (key: string) => {
+  return activeKeys.value.includes(key);
 };
 
 // 获取音符的等价名称（例如C#=Db）
@@ -136,18 +162,33 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
   width: 100%;
 }
 
+.piano-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 900px;
+  gap: 10px;
+}
+
 .keyboard {
   display: flex;
   justify-content: center;
   position: relative;
   height: 180px;
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
   background-color: #f0f0f0;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+}
+
+/* 第三排七和弦键盘 */
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  margin-top: 15px;
 }
 
 .key {
@@ -178,6 +219,16 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
   margin-right: calc((100% / 10) * -0.35);
   z-index: 2;
   color: white;
+}
+
+.seventh-key {
+  background-color: #4a6072;
+  color: white;
+  border: 1px solid #384857;
+  width: calc(100% / 7 - 10px);
+  height: 80px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .note-name {
