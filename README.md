@@ -1,72 +1,67 @@
-# 自动和弦在线Web程序
+# 自动和弦 (Auto Chord)
 
-## 项目简介
+自动和弦是一个交互式网页应用，允许用户通过键盘按键或按键组合来播放不同的音乐和弦。该应用旨在为音乐学习者、作曲家和音乐爱好者提供一个便捷的和弦演奏工具，帮助他们探索和学习不同的和弦结构。
 
-自动和弦在线Web程序是一个交互式网页应用，允许用户通过键盘按键或按键组合来播放不同的音乐和弦。该应用旨在为音乐学习者、作曲家和音乐爱好者提供一个便捷的和弦演奏工具，帮助他们探索和学习不同的和弦结构。
+## 功能特点
 
-### 主要功能
-
-- 通过单个按键播放基本和弦（如Q播放C和弦）
-- 通过按键组合强制特定和弦性质（如Shift+按键播放大三和弦）
-- 直观显示当前播放的和弦和组成音符
-- 虚拟钢琴键盘，显示和弦在键盘上的位置
-- 可自定义的音频设置（音量、混响等）
-
-## 快速开始
-
-项目仍处于开发阶段。计划支持以下启动方式：
-
-```bash
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
-
-# 构建生产版本
-npm run build
-
-# 运行测试
-npm test
-```
+- 通过键盘按键播放和弦
+- 使用修饰键（Shift, Ctrl, Alt）改变和弦类型
+- 实时显示当前播放的和弦和包含的音符
+- 可调整音色、音量和ADSR包络参数
+- 现代响应式UI设计
 
 ## 技术栈
 
-计划使用的技术：
+- Vue 3 + TypeScript - 前端框架
+- Tone.js - Web音频处理库
+- Pinia - 状态管理
+- Vite - 构建工具
 
-- 前端框架：Vue.js 3 (Composition API + Script setup)
-- 构建工具：Vite
-- 状态管理：Pinia
-- 音频处理：Tone.js
-- CSS框架：TailwindCSS
-- 类型系统：TypeScript
-- 测试工具：Vitest + Vue Test Utils, Cypress
+## 开发设置
 
-## 项目结构
+### 前提条件
 
-```
-auto_chord/
-├── docs/               # 文档
-├── project_management/ # 项目管理文件
-├── scripts/            # 工具脚本
-├── public/             # 静态资源
-├── src/                # 源代码
-│   ├── assets/         # 静态资源（会被构建处理）
-│   ├── components/     # Vue组件
-│   ├── composables/    # 组合式API函数
-│   ├── stores/         # Pinia状态管理
-│   ├── utils/          # 工具函数
-│   ├── views/          # 页面视图
-│   ├── App.vue         # 根组件
-│   └── main.js         # 入口文件
-└── tests/              # 测试文件
+- Node.js (v16.0.0+)
+- npm (v8.0.0+)
+
+### 安装依赖
+
+```bash
+npm install
 ```
 
-## 贡献指南
+### 启动开发服务器
 
-项目仍在早期开发阶段，暂未开放贡献。
+```bash
+npm run dev
+```
 
-## 许可证
+### 构建生产版本
 
-该项目计划采用MIT许可证。
+```bash
+npm run build
+```
+
+### 运行测试
+
+```bash
+npm run test
+```
+
+## 使用说明
+
+使用键盘上的按键来播放和弦：
+
+- **A, S, D, F, G, H, J, K, L**：播放对应的音符
+- **W, E, T, Y, U, O, P**：播放对应的黑键音符
+- **Shift**：将和弦转为小调
+- **Ctrl**：将和弦转为suspended fourth (sus4)
+- **Alt**：将和弦转为suspended second (sus2)
+- **Shift + Ctrl**：播放属七和弦 (dominant seventh)
+- **Shift + Alt**：播放大七和弦 (major seventh)
+- **Ctrl + Alt**：播放小七和弦 (minor seventh)
+
+## 许可
+
+ISC License
 
