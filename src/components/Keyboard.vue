@@ -108,6 +108,7 @@ function getChordSuffix(type: ChordType): string {
     case ChordType.DOMINANT_SEVENTH: return '7';
     case ChordType.MAJOR_SEVENTH: return 'maj7';
     case ChordType.MINOR_SEVENTH: return 'm7';
+    case ChordType.HALF_DIMINISHED_SEVENTH: return 'm7b5'; // 半减七和弦显示m7b5
     case ChordType.SIXTH: return '6';
     case ChordType.MINOR_SIXTH: return 'm6';
     case ChordType.NINTH: return '9';

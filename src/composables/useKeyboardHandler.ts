@@ -32,7 +32,7 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   'v': { root: 'F', type: ChordType.MAJOR_SEVENTH },       // Fmaj7 (IV7)
   'b': { root: 'G', type: ChordType.DOMINANT_SEVENTH },    // G7 (V7)
   'n': { root: 'A', type: ChordType.MINOR_SEVENTH },       // Am7 (vi7)
-  'm': { root: 'B', type: ChordType.MINOR_SEVENTH }        // Bm7b5 (viio7) - 实际为半减七和弦
+  'm': { root: 'B', type: ChordType.HALF_DIMINISHED_SEVENTH }  // Bm7b5 (viio7) - 半减七和弦
 };
 
 // 默认八度

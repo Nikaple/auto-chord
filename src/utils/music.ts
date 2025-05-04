@@ -47,6 +47,7 @@ export enum ChordType {
   DOMINANT_SEVENTH = '7',
   MAJOR_SEVENTH = 'maj7',
   MINOR_SEVENTH = 'min7',
+  HALF_DIMINISHED_SEVENTH = 'm7b5',
   SIXTH = '6',
   MINOR_SIXTH = 'min6',
   NINTH = '9'
@@ -117,6 +118,11 @@ export class Chord {
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 7)); // 纯五度
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 10)); // 小七度
         break;
+      case ChordType.HALF_DIMINISHED_SEVENTH:
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 3)); // 小三度
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 6)); // 减五度
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 10)); // 小七度
+        break;
       case ChordType.SIXTH:
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 4)); // 大三度
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 7)); // 纯五度
@@ -178,6 +184,8 @@ export class Chord {
         return 'maj7';
       case ChordType.MINOR_SEVENTH:
         return 'm7';
+      case ChordType.HALF_DIMINISHED_SEVENTH:
+        return 'm7b5';
       case ChordType.SIXTH:
         return '6';
       case ChordType.MINOR_SIXTH:
