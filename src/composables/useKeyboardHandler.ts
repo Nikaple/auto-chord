@@ -12,9 +12,6 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   'g': { root: 'G', type: ChordType.MAJOR },         // G大三和弦 (V)
   'h': { root: 'A', type: ChordType.MINOR },         // A小三和弦 (vi)
   'j': { root: 'B', type: ChordType.DIMINISHED },    // B减三和弦 (viio)
-  'k': { root: 'C', type: ChordType.MAJOR },         // 高八度C大三和弦
-  'l': { root: 'D', type: ChordType.MINOR },         // 高八度D小三和弦
-  ';': { root: 'E', type: ChordType.MINOR },         // 高八度E小三和弦
   
   // 第一排按键 - 根音离调的和弦
   'w': { root: 'C#', type: ChordType.DIMINISHED },   // C#减三和弦
@@ -22,8 +19,6 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   't': { root: 'F#', type: ChordType.DIMINISHED },   // F#减三和弦
   'y': { root: 'G#', type: ChordType.DIMINISHED },   // G#减三和弦
   'u': { root: 'A#', type: ChordType.MAJOR },        // A#大三和弦
-  'o': { root: 'C#', type: ChordType.DIMINISHED },   // 高八度C#减三和弦
-  'p': { root: 'D#', type: ChordType.DIMINISHED },   // 高八度D#减三和弦
   
   // 第三排按键 - C大调常见七和弦
   'z': { root: 'C', type: ChordType.MAJOR_SEVENTH },       // Cmaj7 (I7)
@@ -37,8 +32,8 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
 
 // 默认八度
 const DEFAULT_OCTAVE = 4;
-// 对于高八度键的八度偏移
-const HIGH_OCTAVE_KEYS = ['k', 'l', ';', 'o', 'p'];
+// 对于高八度键的八度偏移 - 由于删除了高八度键，此处可以清空
+const HIGH_OCTAVE_KEYS: string[] = [];
 
 // 持续播放的间隔时间（毫秒）
 const SUSTAIN_INTERVAL = 1000;
@@ -104,36 +99,79 @@ export function useKeyboardHandler() {
   
   // 处理键盘按下事件
   function handleKeyDown(event: KeyboardEvent) {
-    if (event.repeat || !KEY_TO_CHORD[event.key.toLowerCase()]) return;
+    // 更新修饰符状态
+    modifiers.value = {
+      shift: event.shiftKey,
+      ctrl: event.ctrlKey,
+      alt: event.altKey
+    };
     
     const key = event.key.toLowerCase();
     
-    // 如果按键已经在激活列表中，则不重复添加
-    if (!pressedKeys.has(key)) {
-      pressedKeys.add(key);
+    // 阻止浏览器默认行为，如Ctrl+A全选
+    if ((event.ctrlKey || event.altKey) && KEY_TO_CHORD[key]) {
+      event.preventDefault();
     }
     
-    const baseChord = KEY_TO_CHORD[key];
-    if (!baseChord) return;
-    
-    // 应用修饰键
-    const modifiedChord = applyModifiers(baseChord);
-    
-    currentChord.value = modifiedChord;
-    audioSystem.playChord(modifiedChord);
+    // 如果是和弦键盘的按键
+    if (KEY_TO_CHORD[key]) {
+      // 如果按键已经在激活列表中，则不重复添加
+      if (!pressedKeys.has(key)) {
+        pressedKeys.add(key);
+      }
+      
+      const baseChord = KEY_TO_CHORD[key];
+      
+      // 应用修饰键
+      const modifiedChord = applyModifiers(baseChord);
+      
+      // 播放和弦
+      currentChord.value = modifiedChord;
+      audioSystem.playChord(modifiedChord);
+    }
   }
   
   // 处理键盘松开事件
   function handleKeyUp(event: KeyboardEvent) {
+    // 更新修饰符状态
+    modifiers.value = {
+      shift: event.shiftKey,
+      ctrl: event.ctrlKey,
+      alt: event.altKey
+    };
+    
     const key = event.key.toLowerCase();
     
-    // 从pressedKeys中移除当前释放的键
-    pressedKeys.delete(key);
-    
-    // 如果没有其他键处于活跃状态，则停止当前和弦
-    if (pressedKeys.size === 0) {
-      currentChord.value = null;
-      audioSystem.stopAll();
+    // 如果释放的是和弦按键（而不是修饰键），则停止声音
+    if (KEY_TO_CHORD[key]) {
+      // 从pressedKeys中移除当前释放的键
+      pressedKeys.delete(key);
+      
+      // 检查是否还有其他和弦按键被按下
+      const remainingChordKeys = Array.from(pressedKeys).filter(k => KEY_TO_CHORD[k]);
+      
+      if (remainingChordKeys.length > 0) {
+        // 如果还有其他和弦按键，播放最近按下的那个
+        const latestKey = remainingChordKeys[remainingChordKeys.length - 1];
+        const baseChord = KEY_TO_CHORD[latestKey];
+        const modifiedChord = applyModifiers(baseChord);
+        currentChord.value = modifiedChord;
+        audioSystem.playChord(modifiedChord);
+      } else {
+        // 如果没有其他和弦按键，停止声音
+        currentChord.value = null;
+        audioSystem.stopAll();
+      }
+    } else {
+      // 如果释放的是修饰键，且有和弦按键被按下，更新和弦
+      const chordKeys = Array.from(pressedKeys).filter(k => KEY_TO_CHORD[k]);
+      if (chordKeys.length > 0) {
+        const activeKey = chordKeys[chordKeys.length - 1];
+        const baseChord = KEY_TO_CHORD[activeKey];
+        const modifiedChord = applyModifiers(baseChord);
+        currentChord.value = modifiedChord;
+        audioSystem.playChord(modifiedChord);
+      }
     }
   }
   
