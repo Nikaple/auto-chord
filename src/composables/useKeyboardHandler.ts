@@ -2,16 +2,34 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { ChordType, Chord } from '@/utils/music'
 import AudioSystem from '@/utils/audioSystem'
 
-// 键盘到音符的映射
-const KEY_TO_NOTE: Record<string, string> = {
-  'a': 'C', 'w': 'C#', 's': 'D', 'e': 'D#', 'd': 'E',
-  'f': 'F', 't': 'F#', 'g': 'G', 'y': 'G#', 'h': 'A',
-  'u': 'A#', 'j': 'B', 'k': 'C', 'o': 'C#', 'l': 'D',
-  'p': 'D#', ';': 'E'
+// 键盘到和弦的映射（C大调）
+const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
+  // 第二排按键 - C大调基础和弦 (I ii iii IV V vi viio)
+  'a': { root: 'C', type: ChordType.MAJOR },         // C大三和弦 (I)
+  's': { root: 'D', type: ChordType.MINOR },         // D小三和弦 (ii)
+  'd': { root: 'E', type: ChordType.MINOR },         // E小三和弦 (iii)
+  'f': { root: 'F', type: ChordType.MAJOR },         // F大三和弦 (IV)
+  'g': { root: 'G', type: ChordType.MAJOR },         // G大三和弦 (V)
+  'h': { root: 'A', type: ChordType.MINOR },         // A小三和弦 (vi)
+  'j': { root: 'B', type: ChordType.DIMINISHED },    // B减三和弦 (viio)
+  'k': { root: 'C', type: ChordType.MAJOR },         // 高八度C大三和弦
+  'l': { root: 'D', type: ChordType.MINOR },         // 高八度D小三和弦
+  ';': { root: 'E', type: ChordType.MINOR },         // 高八度E小三和弦
+  
+  // 第一排按键 - 根音离调的三和弦
+  'w': { root: 'C#', type: ChordType.DIMINISHED },        // C#大三和弦
+  'e': { root: 'D#', type: ChordType.AUGMENTED },        // D#大三和弦
+  't': { root: 'F#', type: ChordType.DIMINISHED },        // F#大三和弦
+  'y': { root: 'G#', type: ChordType.DIMINISHED },        // G#大三和弦
+  'u': { root: 'A#', type: ChordType.MAJOR },        // A#大三和弦
+  'o': { root: 'C#', type: ChordType.DIMINISHED },        // 高八度C#大三和弦
+  'p': { root: 'D#', type: ChordType.DIMINISHED }         // 高八度D#大三和弦
 };
 
 // 默认八度
 const DEFAULT_OCTAVE = 4;
+// 对于高八度键的八度偏移
+const HIGH_OCTAVE_KEYS = ['k', 'l', ';', 'o', 'p'];
 
 export function useKeyboardHandler() {
   // 当前播放的和弦
@@ -28,22 +46,35 @@ export function useKeyboardHandler() {
   const audioSystem = new AudioSystem();
   
   // 应用修饰符来改变和弦类型
-  function applyModifiers(baseChord: Chord): Chord {
-    const rootNote = baseChord.root.name;
-    const octave = baseChord.root.octave;
-    let chordType = ChordType.MAJOR;
+  function applyModifiers(baseChord: { root: string, type: ChordType }): Chord {
+    const rootNote = baseChord.root;
+    // 确定八度
+    let octave = DEFAULT_OCTAVE;
+    
+    // 基础类型使用传入的类型，除非修饰键改变了类型
+    let chordType = baseChord.type;
     
     if (modifiers.value.shift && modifiers.value.ctrl) {
+      // 属七和弦 - 保持根音不变
       chordType = ChordType.DOMINANT_SEVENTH;
     } else if (modifiers.value.shift && modifiers.value.alt) {
+      // 大七和弦 - 保持根音不变
       chordType = ChordType.MAJOR_SEVENTH;
     } else if (modifiers.value.ctrl && modifiers.value.alt) {
+      // 小七和弦 - 保持根音不变
       chordType = ChordType.MINOR_SEVENTH;
     } else if (modifiers.value.shift) {
-      chordType = ChordType.MINOR;
+      // Shift: 大小性质反转
+      if (chordType === ChordType.MAJOR) {
+        chordType = ChordType.MINOR;
+      } else if (chordType === ChordType.MINOR) {
+        chordType = ChordType.MAJOR;
+      }
     } else if (modifiers.value.ctrl) {
+      // Ctrl: sus4和弦
       chordType = ChordType.SUSPENDED_FOURTH;
     } else if (modifiers.value.alt) {
+      // Alt: sus2和弦
       chordType = ChordType.SUSPENDED_SECOND;
     }
     
@@ -59,9 +90,9 @@ export function useKeyboardHandler() {
       alt: event.altKey
     };
     
-    // 检查是否是音符键
+    // 检查是否是和弦键
     const key = event.key.toLowerCase();
-    if (KEY_TO_NOTE[key]) {
+    if (KEY_TO_CHORD[key]) {
       // 仅当不是重复触发时才播放
       if (!event.repeat) {
         playChordForKey(key);
@@ -87,15 +118,29 @@ export function useKeyboardHandler() {
   
   // 为指定的键播放和弦
   function playChordForKey(key: string) {
-    // 获取音符
-    const noteName = KEY_TO_NOTE[key];
-    if (!noteName) return;
+    // 获取和弦配置
+    const chordConfig = KEY_TO_CHORD[key];
+    if (!chordConfig) return;
+    
+    // 确定八度
+    let octave = DEFAULT_OCTAVE;
+    if (HIGH_OCTAVE_KEYS.includes(key)) {
+      octave = DEFAULT_OCTAVE + 1;
+    }
     
     // 创建基础和弦
-    const baseChord = new Chord(noteName, DEFAULT_OCTAVE);
+    const baseChordConfig = { 
+      root: chordConfig.root, 
+      type: chordConfig.type 
+    };
     
     // 应用修饰符
-    const chord = applyModifiers(baseChord);
+    const chord = applyModifiers(baseChordConfig);
+    
+    // 显式设置八度
+    chord.root.octave = octave;
+    // 重新计算和弦的音符
+    chord.notes = chord.calculateChordNotes();
     
     // 播放和弦
     audioSystem.playChord(chord);
@@ -133,6 +178,7 @@ export function useKeyboardHandler() {
   return {
     currentChord,
     modifiers,
-    audioSystem
+    audioSystem,
+    chordMapping: KEY_TO_CHORD
   };
 } 

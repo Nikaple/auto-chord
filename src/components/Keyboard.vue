@@ -1,24 +1,45 @@
 <template>
   <div class="keyboard-container">
     <div class="keyboard">
-      <div v-for="(note, key) in keyboardMapping" :key="key" 
-           class="key" 
-           :class="{ 
-             'black-key': note.includes('#'), 
-             'white-key': !note.includes('#'),
-             'active': isKeyActive(note)
-           }"
-           @mousedown="playNote(note)">
-        <span class="note-name">{{ note }}</span>
-        <span class="key-label">{{ key }}</span>
+      <!-- 使用特定的键盘布局排序 -->
+      <div 
+        v-for="key in keyboardOrder" 
+        :key="key"
+        class="key" 
+        :class="{ 
+          'black-key': isBlackKey(chordMapping[key]?.root), 
+          'white-key': !isBlackKey(chordMapping[key]?.root),
+          'active': isKeyActive(chordMapping[key]?.root)
+        }"
+        @mousedown="playChord(chordMapping[key])">
+        <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+        <span class="key-label">{{ key.toUpperCase() }}</span>
       </div>
     </div>
     
     <div class="keyboard-help">
-      <p>按住键盘上相应的字母键播放音符。</p>
+      <p>按住键盘上相应的字母键播放和弦。</p>
+      <p>第二排键位 (A-L) 映射到C大调的基础和弦：</p>
+      <div class="chord-map">
+        <span><strong>A</strong>: C大调</span>
+        <span><strong>S</strong>: D小调</span>
+        <span><strong>D</strong>: E小调</span>
+        <span><strong>F</strong>: F大调</span>
+        <span><strong>G</strong>: G大调</span>
+        <span><strong>H</strong>: A小调</span>
+        <span><strong>J</strong>: B减七</span>
+      </div>
+      <p>第一排键位 (W/E/T/Y/U/O/P) 映射到黑键音符的大三和弦</p>
+      <div class="chord-map">
+        <span><strong>W</strong>: C#大调</span>
+        <span><strong>E</strong>: D#大调</span>
+        <span><strong>T</strong>: F#大调</span>
+        <span><strong>Y</strong>: G#大调</span>
+        <span><strong>U</strong>: A#大调</span>
+      </div>
       <p>使用修饰键改变和弦类型：</p>
       <ul>
-        <li><strong>Shift</strong>: 小调和弦</li>
+        <li><strong>Shift</strong>: 转换大小调性质</li>
         <li><strong>Ctrl</strong>: sus4 和弦</li>
         <li><strong>Alt</strong>: sus2 和弦</li>
         <li><strong>Shift + Ctrl</strong>: 属七和弦</li>
@@ -30,29 +51,56 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
-import { Chord, Note } from '@/utils/music';
-
-// 键盘映射
-const keyboardMapping = {
-  'A': 'C', 'W': 'C#', 'S': 'D', 'E': 'D#', 'D': 'E',
-  'F': 'F', 'T': 'F#', 'G': 'G', 'Y': 'G#', 'H': 'A',
-  'U': 'A#', 'J': 'B', 'K': 'C', 'O': 'C#', 'L': 'D',
-  'P': 'D#', ';': 'E'
-};
+import { Chord, ChordType } from '@/utils/music';
 
 // 使用键盘处理器
-const { currentChord } = useKeyboardHandler();
+const { currentChord, chordMapping } = useKeyboardHandler();
+
+// 键盘按键排序，按照键盘物理位置排列，以正确显示黑白键
+const keyboardOrder = [
+  'a', 'w', 's', 'e', 'd', 'f', 't', 'g', 'y', 'h', 'u', 'j', 'k', 'o', 'l', 'p', ';'
+];
+
+// 获取和弦后缀显示
+function getChordSuffix(type: ChordType): string {
+  switch (type) {
+    case ChordType.MAJOR: return '';  // 大三和弦没有后缀
+    case ChordType.MINOR: return 'm'; // 小三和弦显示m
+    case ChordType.DIMINISHED: return 'dim'; // 减三和弦显示dim
+    case ChordType.AUGMENTED: return 'aug'; // 增三和弦显示aug
+    case ChordType.SUSPENDED_SECOND: return 'sus2';
+    case ChordType.SUSPENDED_FOURTH: return 'sus4';
+    case ChordType.DOMINANT_SEVENTH: return '7';
+    case ChordType.MAJOR_SEVENTH: return 'maj7';
+    case ChordType.MINOR_SEVENTH: return 'm7';
+    case ChordType.SIXTH: return '6';
+    case ChordType.MINOR_SIXTH: return 'm6';
+    case ChordType.NINTH: return '9';
+    default: return '';
+  }
+}
+
+// 获取和弦标签显示
+function getChordLabel(mapping: { root: string, type: ChordType } | undefined): string {
+  if (!mapping) return '';
+  return `${mapping.root}${getChordSuffix(mapping.type)}`;
+}
+
+// 检查是否是黑键
+function isBlackKey(noteName: string | undefined): boolean {
+  if (!noteName) return false;
+  return noteName.includes('#') || noteName.includes('b');
+}
 
 // 检查键是否活跃
-const isKeyActive = (note: string) => {
-  if (!currentChord.value) return false;
+const isKeyActive = (noteName: string | undefined) => {
+  if (!currentChord?.value || !noteName) return false;
   
   return currentChord.value.notes.some(chordNote => 
-    chordNote.name === note || 
+    chordNote.name === noteName || 
     // 处理同音异名的情况，例如C#和Db
-    (note.includes('#') && getNoteEquivalent(note) === chordNote.name)
+    (noteName.includes('#') && getNoteEquivalent(noteName) === chordNote.name)
   );
 };
 
@@ -66,14 +114,14 @@ function getNoteEquivalent(note: string): string {
   return equivalents[note] || note;
 }
 
-// 使用鼠标点击播放音符
-function playNote(note: string) {
-  if (currentChord.value) {
-    // 简单地触发该音符的和弦
-    // 在实际应用中，这里可能需要更复杂的逻辑
-    const newChord = new Chord(note, 4); // 默认使用4八度，可以根据需要调整
-    currentChord.value.audioSystem.playChord(newChord);
-  }
+// 使用鼠标点击播放和弦
+function playChord(mapping: { root: string, type: ChordType } | undefined) {
+  if (!mapping || !currentChord.value?.audioSystem) return;
+  
+  // 映射到对应的和弦
+  const octave = 4; // 默认八度
+  const newChord = new Chord(mapping.root, octave, mapping.type);
+  currentChord.value.audioSystem.playChord(newChord);
 }
 </script>
 
@@ -160,5 +208,15 @@ function playNote(note: string) {
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+.chord-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+  background-color: #f0f0f0;
+  padding: 0.5rem;
+  border-radius: 4px;
 }
 </style> 

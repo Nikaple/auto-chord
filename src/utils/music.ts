@@ -64,8 +64,8 @@ export class Chord {
     this.notes = this.calculateChordNotes();
   }
 
-  // 计算和弦包含的音符
-  private calculateChordNotes(): Note[] {
+  // 计算和弦包含的音符 - 修改为公开方法
+  public calculateChordNotes(): Note[] {
     const notes: Note[] = [this.root];
     const rootName = this.root.name;
     const rootOctave = this.root.octave;
