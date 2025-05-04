@@ -34,13 +34,13 @@ npm test
 
 计划使用的技术：
 
-- 前端框架：React
+- 前端框架：Vue.js 3 (Composition API + Script setup)
 - 构建工具：Vite
-- 状态管理：React Context + useReducer
+- 状态管理：Pinia
 - 音频处理：Tone.js
 - CSS框架：TailwindCSS
 - 类型系统：TypeScript
-- 测试工具：Jest + React Testing Library, Cypress
+- 测试工具：Vitest + Vue Test Utils, Cypress
 
 ## 项目结构
 
@@ -49,15 +49,17 @@ auto_chord/
 ├── docs/               # 文档
 ├── project_management/ # 项目管理文件
 ├── scripts/            # 工具脚本
+├── public/             # 静态资源
 ├── src/                # 源代码
-│   ├── components/     # React组件
-│   ├── hooks/          # 自定义钩子
-│   ├── models/         # 数据模型
-│   ├── services/       # 服务（音频等）
-│   ├── styles/         # 样式文件
-│   └── utils/          # 工具函数
-├── tests/              # 测试文件
-└── public/             # 静态资源
+│   ├── assets/         # 静态资源（会被构建处理）
+│   ├── components/     # Vue组件
+│   ├── composables/    # 组合式API函数
+│   ├── stores/         # Pinia状态管理
+│   ├── utils/          # 工具函数
+│   ├── views/          # 页面视图
+│   ├── App.vue         # 根组件
+│   └── main.js         # 入口文件
+└── tests/              # 测试文件
 ```
 
 ## 贡献指南
