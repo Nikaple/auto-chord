@@ -67,15 +67,31 @@ export class Chord {
   root: Note;
   type: ChordType;
   notes: Note[];
+  octave: number;
 
-  constructor(rootName: string, octave: number, type: ChordType = ChordType.MAJOR) {
+  constructor(rootName: string, octave: number = 4, type: ChordType = ChordType.MAJOR) {
     this.root = new Note(rootName, octave);
     this.type = type;
+    this.octave = octave;
     this.notes = this.calculateChordNotes();
   }
 
-  // 计算和弦包含的音符 - 修改为公开方法
-  public calculateChordNotes(): Note[] {
+  // 获取和弦的音符名称数组
+  getNotes(): string[] {
+    return this.notes.map(note => note.name);
+  }
+
+  // 获取和弦的第七音
+  getSeventh(): string | null {
+    if (this.type.includes('7')) {
+      const seventhNote = this.notes[3]; // 第七音是第四个音符
+      return seventhNote ? seventhNote.name : null;
+    }
+    return null;
+  }
+
+  // 计算和弦包含的音符
+  private calculateChordNotes(): Note[] {
     const notes: Note[] = [this.root];
     const rootName = this.root.name;
     const rootOctave = this.root.octave;
@@ -254,7 +270,7 @@ export function getScaleDegree(tonic: string, note: string): number {
 }
 
 // 根据调性和级数获取和弦
-export function getChordByDegree(tonic: string, degree: number, octave: number = 4): { root: string, type: ChordType } {
+export function getChordByDegree(tonic: string, degree: number, octave: number = 4, forceType?: ChordType): { root: string, type: ChordType } {
   // 大调音阶的和弦类型模式
   const chordTypes = [
     ChordType.MAJOR,        // I
@@ -269,12 +285,33 @@ export function getChordByDegree(tonic: string, degree: number, octave: number =
   // 大调音阶的音程
   const intervals = [0, 2, 4, 5, 7, 9, 11];
   
-  // 计算根音
-  const rootIndex = getNoteIndex(tonic) + intervals[(degree - 1) % 7];
-  const root = getNoteByIndex(rootIndex);
+  // 处理半音级数
+  const isHalfStep = degree % 1 !== 0;
+  const baseDegree = Math.floor(degree);
   
-  return {
-    root,
-    type: chordTypes[(degree - 1) % 7]
-  };
+  // 计算根音
+  let rootIndex;
+  if (isHalfStep) {
+    // 对于半音级数，我们取基础级数的音程，然后升高半音
+    const baseInterval = intervals[(baseDegree - 1) % 7];
+    rootIndex = getNoteIndex(tonic) + baseInterval + 1;
+  } else {
+    rootIndex = getNoteIndex(tonic) + intervals[(degree - 1) % 7];
+  }
+  
+  // 获取根音名称
+  const root = getNoteByIndex(rootIndex % 12);
+  
+  // 确定和弦类型
+  let type: ChordType;
+  if (forceType) {
+    type = forceType;
+  } else if (isHalfStep) {
+    // 半音级数默认为减和弦
+    type = ChordType.DIMINISHED;
+  } else {
+    type = chordTypes[(degree - 1) % 7];
+  }
+  
+  return { root, type };
 } 

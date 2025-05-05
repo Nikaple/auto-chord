@@ -174,10 +174,10 @@ onUnmounted(() => {
 });
 
 // 第三排七和弦按键
-const thirdRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
+const thirdRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm', ','];
 
 // 分离白键和黑键
-const whiteKeys = ['s', 'd', 'f', 'g', 'h', 'j', 'k'];
+const whiteKeys = ['s', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
 const blackKeys = ['e', 'r', 'y', 'u', 'i'];
 
 // 记录鼠标按下的键
@@ -459,6 +459,7 @@ function handleTransposeDown() {
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
+  user-select: none; /* 禁用文字选择 */
 }
 
 .piano-layout {
@@ -486,6 +487,11 @@ function handleTransposeDown() {
   width: 100%;
 }
 
+.key {
+  cursor: pointer; /* 添加指针样式 */
+  user-select: none; /* 禁用文字选择 */
+}
+
 .white-key {
   flex: 1;
   height: 100%;
@@ -500,6 +506,7 @@ function handleTransposeDown() {
   z-index: 1;
   color: var(--key-text);
   transition: all 0.2s ease;
+  width: calc(100% / 8); /* 修改为8键布局 */
 }
 
 .white-key:hover {
@@ -551,11 +558,11 @@ function handleTransposeDown() {
 }
 
 /* 黑键位置 */
-.black-key[data-note="F♯"] { left: 10.7%; }
-.black-key[data-note="G♯"] { left: 25%; }
-.black-key[data-note="A♯"] { left: 39.3%; }
-.black-key[data-note="C♯"] { left: 67.9%; }
-.black-key[data-note="D♯"] { left: 82.2%; }
+.black-key[data-note="C♯"] { left: 10.7%; }
+.black-key[data-note="D♯"] { left: 22.3%; }
+.black-key[data-note="F♯"] { left: 47.3%; }
+.black-key[data-note="G♯"] { left: 60.1%; }
+.black-key[data-note="A♯"] { left: 72.9%; }
 
 /* 按键文字样式 */
 .note-name {
@@ -604,6 +611,7 @@ function handleTransposeDown() {
   align-items: center;
   padding-bottom: 15px;
   transition: all 0.2s ease;
+  width: calc(100% / 8); /* 修改为8键布局 */
 }
 
 .seventh-key:hover {
@@ -635,6 +643,7 @@ function handleTransposeDown() {
   font-weight: bold;
   color: var(--control-text);
   cursor: pointer;
+  user-select: none; /* 禁用文字选择 */
   transition: all 0.2s ease;
   min-width: 40px;
   text-align: center;
@@ -668,6 +677,7 @@ function handleTransposeDown() {
   justify-content: center;
   gap: 8px;
   margin-bottom: 16px;
+  user-select: none; /* 禁用文字选择 */
 }
 
 .key-select {
@@ -688,6 +698,7 @@ function handleTransposeDown() {
   background-color: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
+  user-select: none; /* 禁用文字选择 */
   transition: all 0.2s;
 }
 
@@ -736,12 +747,13 @@ function handleTransposeDown() {
   }
 
   .white-key {
-    padding-bottom: 12px;
+    width: calc(100% / 8) !important; /* 修改为8键布局 */
   }
 
   .seventh-key {
-    height: 55px;
-    padding-bottom: 8px;
+    width: calc(100% / 8) !important; /* 修改为8键布局 */
+    height: calc(var(--keyboard-height-small) * 0.3) !important;
+    font-size: var(--font-size-sm) !important;
   }
 
   .note-name {
@@ -835,6 +847,7 @@ function handleTransposeDown() {
 }
 
 .keyboard-help {
+  user-select: none; /* 禁用文字选择 */
   width: 100%;
   background-color: var(--color-background);
   padding: 1rem;

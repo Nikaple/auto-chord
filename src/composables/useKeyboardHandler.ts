@@ -5,20 +5,21 @@ import { useChordStore } from '@/stores/chordStore'
 // 键盘到和弦的映射（C大调）
 const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   // 第二排按键 - C大调基础和弦 (I ii iii IV V vi viio) - 向右移动一位
-  's': { root: 'C', type: ChordType.MAJOR },         // C大三和弦 (I)，原来是A
-  'd': { root: 'D', type: ChordType.MINOR },         // D小三和弦 (ii)，原来是S
-  'f': { root: 'E', type: ChordType.MINOR },         // E小三和弦 (iii)，原来是D
-  'g': { root: 'F', type: ChordType.MAJOR },         // F大三和弦 (IV)，原来是F
-  'h': { root: 'G', type: ChordType.MAJOR },         // G大三和弦 (V)，原来是G
-  'j': { root: 'A', type: ChordType.MINOR },         // A小三和弦 (vi)，原来是H
-  'k': { root: 'B', type: ChordType.DIMINISHED },    // B减三和弦 (viio)，原来是J
+  's': { root: 'C', type: ChordType.MAJOR },         // C大三和弦 (I)
+  'd': { root: 'D', type: ChordType.MINOR },         // D小三和弦 (ii)
+  'f': { root: 'E', type: ChordType.MINOR },         // E小三和弦 (iii)
+  'g': { root: 'F', type: ChordType.MAJOR },         // F大三和弦 (IV)
+  'h': { root: 'G', type: ChordType.MAJOR },         // G大三和弦 (V)
+  'j': { root: 'A', type: ChordType.MINOR },         // A小三和弦 (vi)
+  'k': { root: 'B', type: ChordType.DIMINISHED },    // B减三和弦 (viio)
+  'l': { root: 'C', type: ChordType.MAJOR },         // C大三和弦 (I，高八度)
   
   // 第一排按键 - 根音离调的和弦 - 向右移动一位
-  'e': { root: 'C♯', type: ChordType.DIMINISHED },   // G♯减三和弦，原来是Y
-  'i': { root: 'A♯', type: ChordType.DIMINISHED },   // C♯减三和弦，原来是W
-  'r': { root: 'D♯', type: ChordType.AUGMENTED },    // D♯增三和弦，原来是E
-  'y': { root: 'F♯', type: ChordType.DIMINISHED },   // F♯减三和弦，原来是T
-  'u': { root: 'G♯', type: ChordType.MAJOR },        // A♯大三和弦，原来是U
+  'e': { root: 'C♯', type: ChordType.DIMINISHED },   // C♯减三和弦
+  'i': { root: 'A♯', type: ChordType.DIMINISHED },   // A♯减三和弦
+  'r': { root: 'D♯', type: ChordType.AUGMENTED },    // D♯增三和弦
+  'y': { root: 'F♯', type: ChordType.DIMINISHED },   // F♯减三和弦
+  'u': { root: 'G♯', type: ChordType.MAJOR },        // G♯大三和弦
   
   // 第三排按键 - C大调常见七和弦
   'z': { root: 'C', type: ChordType.MAJOR_SEVENTH },       // Cmaj7 (I7)
@@ -27,7 +28,8 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   'v': { root: 'F', type: ChordType.MAJOR_SEVENTH },       // Fmaj7 (IV7)
   'b': { root: 'G', type: ChordType.DOMINANT_SEVENTH },    // G7 (V7)
   'n': { root: 'A', type: ChordType.MINOR_SEVENTH },       // Am7 (vi7)
-  'm': { root: 'B', type: ChordType.HALF_DIMINISHED_SEVENTH }  // Bm7b5 (viio7) - 半减七和弦
+  'm': { root: 'B', type: ChordType.HALF_DIMINISHED_SEVENTH },  // Bm7b5 (viio7)
+  ',': { root: 'C', type: ChordType.MAJOR_SEVENTH }        // Cmaj7 (I7，高八度)
 };
 
 // 默认八度

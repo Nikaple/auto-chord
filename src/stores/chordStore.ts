@@ -5,24 +5,33 @@ import AudioSystem from '@/utils/audioSystem'
 import * as Tone from 'tone'
 
 // 键盘映射到级数（而不是固定的和弦）
-const KEY_TO_DEGREE: Record<string, { degree: number, octave: number }> = {
+const KEY_TO_DEGREE: Record<string, { degree: number, octave: number, forceType?: ChordType }> = {
   // 第二排按键 - 白键基础和弦（I ii iii IV V vi vii°）
-  's': { degree: 4, octave: 3 },      // IV (F in C major)
-  'd': { degree: 5, octave: 3 },      // V  (G in C major)
-  'f': { degree: 6, octave: 3 },      // vi (A in C major)
-  'g': { degree: 7, octave: 3 },      // vii°(B in C major)
-  'h': { degree: 1, octave: 4 },      // I  (C in C major)
-  'j': { degree: 2, octave: 4 },      // ii (D in C major)
-  'k': { degree: 3, octave: 4 },      // iii(E in C major)
+  's': { degree: 1, octave: 3 },      // I  (C in C major)
+  'd': { degree: 2, octave: 3 },      // ii (D in C major)
+  'f': { degree: 3, octave: 3 },      // iii(E in C major)
+  'g': { degree: 4, octave: 3 },      // IV (F in C major)
+  'h': { degree: 5, octave: 3 },      // V  (G in C major)
+  'j': { degree: 6, octave: 3 },      // vi (A in C major)
+  'k': { degree: 7, octave: 3 },      // vii°(B in C major)
+  'l': { degree: 1, octave: 4 },      // I  (C in C major, 高八度)
   
-  // 第三排按键 - 七和弦
-  'z': { degree: 4, octave: 3 },      // IV7
-  'x': { degree: 5, octave: 3 },      // V7
-  'c': { degree: 6, octave: 3 },      // vi7
-  'v': { degree: 7, octave: 3 },      // vii°7
-  'b': { degree: 1, octave: 4 },      // I7
-  'n': { degree: 2, octave: 4 },      // ii7
-  'm': { degree: 3, octave: 4 }       // iii7
+  // 黑键 - 变化和弦
+  'e': { degree: 1.5, octave: 3, forceType: ChordType.DIMINISHED },     // ♯I/♭II (C♯dim)
+  'r': { degree: 2.5, octave: 3, forceType: ChordType.AUGMENTED },      // ♯II/♭III (D♯aug)
+  'y': { degree: 4.5, octave: 3, forceType: ChordType.DIMINISHED },     // ♯IV/♭V (F♯dim)
+  'u': { degree: 5.5, octave: 3, forceType: ChordType.DIMINISHED },     // ♯V/♭VI (G♯dim)
+  'i': { degree: 6.5, octave: 3, forceType: ChordType.MAJOR },          // ♯VI/♭VII (A♯maj)
+  
+  // 第一排按键 - 七和弦
+  'z': { degree: 1, octave: 3, forceType: ChordType.MAJOR_SEVENTH },      // IM7
+  'x': { degree: 2, octave: 3, forceType: ChordType.MINOR_SEVENTH },      // iim7
+  'c': { degree: 3, octave: 3, forceType: ChordType.MINOR_SEVENTH },      // iiim7
+  'v': { degree: 4, octave: 3, forceType: ChordType.MAJOR_SEVENTH },      // IVM7
+  'b': { degree: 5, octave: 3, forceType: ChordType.DOMINANT_SEVENTH },   // V7
+  'n': { degree: 6, octave: 3, forceType: ChordType.MINOR_SEVENTH },      // vim7
+  'm': { degree: 7, octave: 3, forceType: ChordType.HALF_DIMINISHED_SEVENTH }, // viiø7
+  ',': { degree: 1, octave: 4, forceType: ChordType.MAJOR_SEVENTH },      // IM7（高八度）
 }
 
 export const useChordStore = defineStore('chord', () => {
@@ -41,10 +50,41 @@ export const useChordStore = defineStore('chord', () => {
   const KEY_TO_CHORD = computed(() => {
     const mapping: Record<string, { root: string, type: ChordType, octave?: number }> = {};
     
-    // 处理基础和弦键位
+    // 获取当前调性在音阶中的位置（0-11）
+    const currentKeyIndex = ALL_NOTES.indexOf(currentKey.value);
+    
+    // 处理每个键位映射
     for (const [key, config] of Object.entries(KEY_TO_DEGREE)) {
       const chord = getChordByDegree(currentKey.value, config.degree, config.octave);
-      mapping[key] = { ...chord, octave: config.octave };
+      
+      // 获取和弦根音在音阶中的位置
+      const chordRootIndex = ALL_NOTES.indexOf(chord.root);
+      
+      // 计算八度调整
+      let adjustedOctave = config.octave;
+      
+      // 对于白键区域（基础和弦）进行特殊处理
+      if ('sdfghjkl'.includes(key)) {
+        // G调到B调的情况（音高索引7-11）
+        if (currentKeyIndex >= 7 && currentKeyIndex <= 11) {
+          // 对于白键区域，基础八度降低1
+          adjustedOctave = config.octave - 1;
+          // 如果和弦根音的音高低于当前调的主音，则升高八度
+          if (chordRootIndex < currentKeyIndex) {
+            adjustedOctave = config.octave;
+          }
+        } else {
+          // C调到F#调的情况保持不变
+          if (chordRootIndex < currentKeyIndex) {
+            adjustedOctave = config.octave + 1;
+          }
+        }
+      }
+
+      mapping[key] = { 
+        ...chord, 
+        octave: adjustedOctave 
+      };
     }
     
     return mapping;
