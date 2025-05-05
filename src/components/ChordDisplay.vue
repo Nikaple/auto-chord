@@ -60,13 +60,13 @@ function isTypeActive(typeName: string): boolean {
 // 获取简短的和弦类型标签
 function getShortChordTypeLabel(type: ChordType): string {
   const typeLabels: Record<string, string> = {
-    'major': 'Major',
-    'minor': 'Minor',
+    'major': 'M',
+    'minor': 'm',
     'diminished': 'dim',
     'augmented': 'aug',
     'sus2': 'sus2',
     'sus4': 'sus4',
-    '7': 'dom7',
+    '7': '7',
     'M7': 'M7',
     'min7': 'm7',
     '6': '6',

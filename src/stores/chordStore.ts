@@ -5,31 +5,31 @@ import AudioSystem from '@/utils/audioSystem'
 import * as Tone from 'tone'
 
 // 键盘映射配置
-const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
-  // 第二排按键 - C大调基础和弦
-  's': { root: 'C', type: ChordType.MAJOR },      // C (I)
-  'd': { root: 'D', type: ChordType.MINOR },      // Dm (ii)
-  'f': { root: 'E', type: ChordType.MINOR },      // Em (iii)
-  'g': { root: 'F', type: ChordType.MAJOR },      // F (IV)
-  'h': { root: 'G', type: ChordType.MAJOR },      // G (V)
-  'j': { root: 'A', type: ChordType.MINOR },      // Am (vi)
-  'k': { root: 'B', type: ChordType.DIMINISHED }, // Bdim (vii°)
+const KEY_TO_CHORD: Record<string, { root: string, type: ChordType, octave?: number }> = {
+  // 第二排按键 - 白键基础和弦（FGABCDE）
+  's': { root: 'F', type: ChordType.MAJOR, octave: 3 },      // F3
+  'd': { root: 'G', type: ChordType.MAJOR, octave: 3 },      // G3
+  'f': { root: 'A', type: ChordType.MINOR, octave: 3 },      // A3
+  'g': { root: 'B', type: ChordType.DIMINISHED, octave: 3 }, // B3
+  'h': { root: 'C', type: ChordType.MAJOR, octave: 4 },      // C4 (中央C)
+  'j': { root: 'D', type: ChordType.MINOR, octave: 4 },      // D4
+  'k': { root: 'E', type: ChordType.MINOR, octave: 4 },      // E4
   
-  // 第一排按键 - 特殊和弦
-  'e': { root: 'C♯', type: ChordType.DIMINISHED },
-  'r': { root: 'D♯', type: ChordType.AUGMENTED },
-  'y': { root: 'F♯', type: ChordType.DIMINISHED },
-  'u': { root: 'G♯', type: ChordType.DIMINISHED },
-  'i': { root: 'A♯', type: ChordType.MAJOR },
+  // 第一排按键 - 黑键和弦
+  'e': { root: 'F♯', type: ChordType.DIMINISHED, octave: 3 },
+  'r': { root: 'G♯', type: ChordType.DIMINISHED, octave: 3 },
+  'y': { root: 'A♯', type: ChordType.MAJOR, octave: 3 },
+  'u': { root: 'C♯', type: ChordType.DIMINISHED, octave: 4 },
+  'i': { root: 'D♯', type: ChordType.AUGMENTED, octave: 4 },
   
   // 第三排按键 - 七和弦
-  'z': { root: 'C', type: ChordType.MAJOR_SEVENTH },
-  'x': { root: 'D', type: ChordType.MINOR_SEVENTH },
-  'c': { root: 'E', type: ChordType.MINOR_SEVENTH },
-  'v': { root: 'F', type: ChordType.MAJOR_SEVENTH },
-  'b': { root: 'G', type: ChordType.DOMINANT_SEVENTH },
-  'n': { root: 'A', type: ChordType.MINOR_SEVENTH },
-  'm': { root: 'B', type: ChordType.HALF_DIMINISHED_SEVENTH }
+  'z': { root: 'F', type: ChordType.MAJOR_SEVENTH, octave: 3 },
+  'x': { root: 'G', type: ChordType.DOMINANT_SEVENTH, octave: 3 },
+  'c': { root: 'A', type: ChordType.MINOR_SEVENTH, octave: 3 },
+  'v': { root: 'B', type: ChordType.HALF_DIMINISHED_SEVENTH, octave: 3 },
+  'b': { root: 'C', type: ChordType.MAJOR_SEVENTH, octave: 4 },
+  'n': { root: 'D', type: ChordType.MINOR_SEVENTH, octave: 4 },
+  'm': { root: 'E', type: ChordType.MINOR_SEVENTH, octave: 4 }
 }
 
 export const useChordStore = defineStore('chord', () => {
@@ -66,7 +66,7 @@ export const useChordStore = defineStore('chord', () => {
   }
   
   // 应用修饰符到和弦
-  function applyModifiers(baseChord: { root: string, type: ChordType }): Chord {
+  function applyModifiers(baseChord: { root: string, type: ChordType, octave?: number }): Chord {
     let type = baseChord.type;
     
     // 组合修饰键处理 - 优先级最高
@@ -100,7 +100,7 @@ export const useChordStore = defineStore('chord', () => {
       type = ChordType.SUSPENDED_SECOND;
     }
     
-    return new Chord(baseChord.root, 4, type);
+    return new Chord(baseChord.root, baseChord.octave || 4, type);
   }
   
   // 播放和弦

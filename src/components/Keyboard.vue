@@ -516,11 +516,11 @@ function getBlackKeyPosition(key: string): Record<string, string> {
 }
 
 /* 黑键位置 */
-.black-key[data-note="C♯"] { left: 10.7%; }
-.black-key[data-note="D♯"] { left: 25%; }
-.black-key[data-note="F♯"] { left: 53.6%; }
-.black-key[data-note="G♯"] { left: 67.9%; }
-.black-key[data-note="A♯"] { left: 82.2%; }
+.black-key[data-note="F♯"] { left: 10.7%; }
+.black-key[data-note="G♯"] { left: 25%; }
+.black-key[data-note="A♯"] { left: 39.3%; }
+.black-key[data-note="C♯"] { left: 67.9%; }
+.black-key[data-note="D♯"] { left: 82.2%; }
 
 /* 按键文字样式 */
 .note-name {
