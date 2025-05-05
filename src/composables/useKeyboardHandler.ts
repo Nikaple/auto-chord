@@ -149,6 +149,9 @@ export function useKeyboardHandler() {
       // 从pressedKeys中移除当前释放的键
       pressedKeys.delete(key);
       
+      // 立即停止当前声音
+      audioSystem.stopAll();
+      
       // 检查是否还有其他和弦按键被按下
       const remainingChordKeys = Array.from(pressedKeys).filter(k => KEY_TO_CHORD[k]);
       
@@ -160,14 +163,16 @@ export function useKeyboardHandler() {
         currentChord.value = modifiedChord;
         audioSystem.playChord(modifiedChord);
       } else {
-        // 如果没有其他和弦按键，停止声音
+        // 如果没有其他和弦按键，更新当前和弦状态为null
         currentChord.value = null;
-        audioSystem.stopAll();
       }
     } else {
       // 如果释放的是修饰键，且有和弦按键被按下，更新和弦
       const chordKeys = Array.from(pressedKeys).filter(k => KEY_TO_CHORD[k]);
       if (chordKeys.length > 0) {
+        // 先停止所有声音
+        audioSystem.stopAll();
+        
         const activeKey = chordKeys[chordKeys.length - 1];
         const baseChord = KEY_TO_CHORD[activeKey];
         const modifiedChord = applyModifiers(baseChord);

@@ -234,10 +234,8 @@ function handleMouseDown(key: string, mapping: { root: string, type: ChordType }
 
 // 鼠标抬起处理函数
 function handleMouseUp() {
-  // 如果没有键盘按键处于活跃状态，则停止当前和弦
-  if (activeKeys.value.length === 0) {
-    audioSystem.stopAll();
-  }
+  // 立即停止所有声音
+  audioSystem.stopAll();
   
   // 清除鼠标激活的按键
   mouseActiveKey.value = null;

@@ -204,7 +204,8 @@ export default class AudioSystem {
   // 停止所有声音
   stopAll(): void {
     if (this.sampler && this.samplerLoaded) {
-      this.sampler.releaseAll();
+      // 立即停止所有声音
+      this.sampler.releaseAll(0); // 设置为0表示立即释放
     }
     this.activeNotes.clear();
   }
