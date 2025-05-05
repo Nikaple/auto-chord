@@ -95,9 +95,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useKeyboardHandler } from '@/composables/useKeyboardHandler';
+import { useChordStore } from '@/stores/chordStore';
 
-const { audioSystem } = useKeyboardHandler();
+const chordStore = useChordStore();
 
 // 钢琴音色参数
 const volume = ref(0.7);
@@ -111,7 +111,7 @@ const samplerLoaded = ref(false);
 
 // 监听采样器加载状态
 const checkSamplerStatus = () => {
-  samplerLoaded.value = audioSystem.isSamplerLoaded();
+  samplerLoaded.value = chordStore.isAudioInitialized;
   if (!samplerLoaded.value) {
     // 每秒检查一次，直到加载完成
     setTimeout(checkSamplerStatus, 1000);
@@ -120,7 +120,7 @@ const checkSamplerStatus = () => {
 
 // 获取当前设置
 onMounted(() => {
-  const settings = audioSystem.getSettings();
+  const settings = chordStore.audioSystem.getSettings();
   volume.value = settings.volume;
   release.value = settings.release;
   reverb.value = settings.reverb;
@@ -133,7 +133,7 @@ onMounted(() => {
 
 // 更新设置
 const updateSettings = () => {
-  audioSystem.applySettings({
+  chordStore.audioSystem.applySettings({
     volume: volume.value,
     release: release.value,
     reverb: reverb.value,

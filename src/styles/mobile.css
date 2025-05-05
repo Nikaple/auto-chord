@@ -1,44 +1,60 @@
-/* 移动端优化样式 */
+/* 移动端和触摸设备优化样式 */
 
 /* 钢琴键盘移动端优化 */
 @media (max-width: 768px) {
   .keyboard {
-    height: var(--key-height-mobile) !important;
+    height: var(--keyboard-height-small) !important;
+  }
+  
+  .key {
+    touch-action: none; /* 防止触摸滚动 */
+    min-height: 44px; /* 确保触摸目标足够大 */
+  }
+  
+  .key:active {
+    transform: translateY(2px);
   }
   
   .white-key {
-    width: var(--key-width-mobile) !important;
+    width: calc(100% / 7) !important;
   }
   
   .black-key {
-    width: calc(var(--key-width-mobile) * 0.7) !important;
-    height: 60% !important;
-    margin-left: calc(var(--key-width-mobile) * -0.35) !important;
-    margin-right: calc(var(--key-width-mobile) * -0.35) !important;
+    width: 8% !important;
+    margin-left: -4% !important;
+    margin-right: -4% !important;
   }
   
   .note-name {
-    font-size: 0.7rem !important;
+    font-size: var(--font-size-xs) !important;
   }
   
   .key-label {
-    font-size: 0.6rem !important;
+    font-size: var(--font-size-xxs) !important;
   }
   
   .seventh-key {
-    height: 60px !important;
-    font-size: 0.8rem !important;
+    height: calc(var(--keyboard-height-small) * 0.3) !important;
+    font-size: var(--font-size-sm) !important;
+  }
+  
+  .keyboard-row {
+    gap: var(--spacing-xs) !important; /* 增加按钮间距，防止误触 */
+  }
+  
+  .modifier-status span {
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
   }
 }
 
 /* 和弦显示优化 */
 @media (max-width: 768px) {
   .chord-display {
-    padding: 1rem !important;
+    padding: var(--spacing-md) !important;
   }
   
   .chord-name {
-    font-size: 2rem !important;
+    font-size: var(--font-size-xxl) !important;
   }
   
   .chord-notes {
@@ -46,38 +62,13 @@
   }
   
   .note {
-    padding: 0.15rem 0.4rem !important;
-    font-size: 0.8rem !important;
+    padding: var(--spacing-xxs) var(--spacing-xs) !important;
+    font-size: var(--font-size-sm) !important;
   }
   
   .modifier {
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.8rem !important;
-  }
-}
-
-/* 触摸优化 */
-@media (hover: none) and (pointer: coarse) {
-  .key {
-    touch-action: none; /* 防止触摸滚动 */
-  }
-  
-  .white-key, .black-key, .seventh-key {
-    min-height: 44px; /* 确保触摸目标足够大 */
-  }
-  
-  .modifier-status span {
-    padding: 8px 16px !important;
-  }
-  
-  /* 增加按钮间距，防止误触 */
-  .keyboard-row {
-    gap: 8px !important;
-  }
-  
-  /* 优化触摸反馈 */
-  .key:active {
-    transform: translateY(2px);
+    padding: var(--spacing-xxs) var(--spacing-xs) !important;
+    font-size: var(--font-size-sm) !important;
   }
 }
 
@@ -85,7 +76,7 @@
 @media (max-width: 768px) {
   .main-layout {
     flex-direction: column !important;
-    gap: 1rem !important;
+    gap: var(--spacing-md) !important;
   }
   
   .right-section {
@@ -97,7 +88,7 @@
   }
   
   .keyboard-help {
-    font-size: 0.9rem !important;
+    font-size: var(--font-size-sm) !important;
   }
   
   .chord-map {
@@ -108,10 +99,10 @@
 /* 和弦标注优化 */
 @media (max-width: 768px) {
   .chord-info {
-    gap: 0.8rem !important;
+    gap: var(--spacing-sm) !important;
   }
   
   .chord-type, .modifiers {
-    font-size: 0.9rem !important;
+    font-size: var(--font-size-sm) !important;
   }
 } 

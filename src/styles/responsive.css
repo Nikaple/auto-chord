@@ -41,6 +41,7 @@
   
   .white-key {
     width: var(--key-width-desktop);
+    height: 100%;
   }
   
   .black-key {
@@ -60,6 +61,7 @@
   
   .white-key {
     width: var(--key-width-tablet);
+    height: 100%;
   }
   
   .black-key {
@@ -85,6 +87,7 @@
   
   .white-key {
     width: var(--key-width-mobile);
+    height: 100%;
   }
   
   .black-key {
@@ -110,10 +113,8 @@
     margin: calc(var(--base-spacing) / 2);
     padding: calc(var(--base-spacing) / 2);
   }
-}
 
-/* 触摸设备优化 */
-@media (hover: none) and (pointer: coarse) {
+  /* 触摸优化 */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
@@ -124,7 +125,6 @@
     gap: calc(var(--base-spacing) / 2);
   }
   
-  /* 增大点击区域 */
   button, 
   .key,
   .chord-button {
@@ -132,7 +132,6 @@
     min-width: 44px;
   }
   
-  /* 禁用悬停效果 */
   .hover-effect {
     display: none;
   }

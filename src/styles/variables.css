@@ -1,0 +1,87 @@
+/* 设计系统变量 */
+:root {
+  /* 颜色系统 */
+  --color-primary: #4a6072;
+  --color-secondary: #2c3e50;
+  --color-accent: #1a5c9a;
+  --color-background: #f5f7fa;
+  --color-dark: #2c3e50;
+  --color-light: #ffffff;
+  --color-gray: #95a5a6;
+  
+  /* 键盘颜色 */
+  --key-white: #ffffff;
+  --key-black: #1a1a1a;
+  --key-active: var(--color-accent);
+  --key-border: #d4d4d4;
+  
+  /* 断点系统 */
+  --breakpoint-small: 480px;    /* 手机 */
+  --breakpoint-medium: 768px;   /* 平板 */
+  --breakpoint-large: 1024px;   /* 小屏电脑 */
+  --breakpoint-xlarge: 1200px;  /* 大屏电脑 */
+  
+  /* 间距系统 */
+  --spacing-xxs: 0.25rem;  /* 4px */
+  --spacing-xs: 0.5rem;    /* 8px */
+  --spacing-sm: 0.75rem;   /* 12px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-xxl: 2.5rem;   /* 40px */
+  
+  /* 字体大小系统 */
+  --font-size-xxs: 0.625rem;  /* 10px */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-xxl: 1.5rem;    /* 24px */
+  
+  /* 键盘尺寸 */
+  --keyboard-height-small: 130px;    /* 手机 */
+  --keyboard-height-medium: 150px;   /* 平板 */
+  --keyboard-height-large: 180px;    /* 小屏电脑 */
+  --keyboard-height-xlarge: 200px;   /* 大屏电脑 */
+  
+  /* 黑键比例 */
+  --black-key-width: 8%;
+  --black-key-height: 60%;
+  
+  /* 圆角 */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+  
+  /* 动画 */
+  --transition-fast: 0.1s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* 布局 */
+  --container-padding-small: var(--spacing-xs);    /* 手机 */
+  --container-padding-medium: var(--spacing-sm);   /* 平板 */
+  --container-padding-large: var(--spacing-md);    /* 小屏电脑 */
+  --container-padding-xlarge: var(--spacing-lg);   /* 大屏电脑 */
+  
+  --container-max-width: var(--breakpoint-xlarge);
+  --panel-min-width: 300px;
+}
+
+/* 深色主题变量 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #1a1a1a;
+    --color-dark: #f5f7fa;
+    --color-light: #2c3e50;
+    --key-white: #e0e0e0;
+    --key-black: #000000;
+    --key-border: #333333;
+  }
+} 

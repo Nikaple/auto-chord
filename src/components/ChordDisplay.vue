@@ -34,11 +34,14 @@
 </template>
 
 <script setup lang="ts">
-import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { ChordType, Chord } from '@/utils/music'
+import { useChordStore } from '@/stores/chordStore'
+import { computed } from 'vue'
 
-// 使用键盘处理器
-const { currentChord, modifiers } = useKeyboardHandler();
+// 使用和弦 store
+const chordStore = useChordStore()
+const currentChord = computed(() => chordStore.currentChord)
+const modifiers = computed(() => chordStore.modifiers)
 
 // 获取简短的和弦名称
 function getShortChordName(chord: Chord): string {
@@ -188,12 +191,6 @@ h2 {
   .modifier {
     font-size: 1rem;
     padding: 0.3rem 0.5rem;
-  }
-}
-
-/* 触摸设备优化 */
-@media (hover: none) and (pointer: coarse) {
-  .modifier {
     min-width: 40px;
     min-height: 40px;
     display: flex;
