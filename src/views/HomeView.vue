@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <h1>自动和弦</h1>
-    <p class="subtitle">使用键盘演奏和弦，探索音乐的世界</p>
     
     <div class="main-layout">
       <div class="left-section">

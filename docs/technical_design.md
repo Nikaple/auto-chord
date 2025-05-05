@@ -87,6 +87,67 @@
 5. **SettingsPanel组件**：设置面板
 6. **HelpSection组件**：帮助和教程区域
 
+#### 响应式设计实现：
+
+1. **CSS变量系统**：
+```css
+:root {
+  /* 断点系统 */
+  --breakpoint-small: 480px;    /* 手机 */
+  --breakpoint-medium: 768px;   /* 平板 */
+  --breakpoint-large: 1024px;   /* 小屏电脑 */
+  --breakpoint-xlarge: 1200px;  /* 大屏电脑 */
+  
+  /* 键盘尺寸 */
+  --keyboard-height-small: 130px;    /* 手机 */
+  --keyboard-height-medium: 150px;   /* 平板 */
+  --keyboard-height-large: 180px;    /* 小屏电脑 */
+  --keyboard-height-xlarge: 200px;   /* 大屏电脑 */
+}
+```
+
+2. **触摸交互优化**：
+```typescript
+// 统一的事件处理
+function handleTouchStart(key: string, mapping: { root: string, type: ChordType }) {
+  handleMouseDown(key, mapping);
+}
+
+function handleTouchEnd() {
+  handleMouseUp();
+}
+
+// 移动端修饰键切换
+function toggleModifier(modifier: 'shift' | 'ctrl' | 'alt') {
+  if (isMobileDevice.value) {
+    const newModifiers = { ...chordStore.modifiers };
+    newModifiers[modifier] = !newModifiers[modifier];
+    chordStore.setModifiers(newModifiers);
+  }
+}
+```
+
+3. **移动端布局适配**：
+```css
+@media (max-width: 768px) {
+  .keyboard {
+    height: var(--keyboard-height-small);
+  }
+  
+  .white-key {
+    width: calc(100% / 7);
+  }
+  
+  .black-key {
+    width: 8%;
+  }
+  
+  .note-name {
+    font-size: var(--font-size-xs);
+  }
+}
+```
+
 #### 组件实现示例（Vue 3 + Composition API + Script setup）：
 
 ```vue
