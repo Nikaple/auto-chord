@@ -117,19 +117,19 @@ export function useKeyboardHandler() {
     
     // 如果是和弦键盘的按键
     if (KEY_TO_CHORD[key]) {
-      // 如果按键已经在激活列表中，则不重复添加
+      // 检查按键是否已经在激活列表中，如果已经激活则不重新触发和弦
       if (!pressedKeys.has(key)) {
         pressedKeys.add(key);
+        
+        const baseChord = KEY_TO_CHORD[key];
+        
+        // 应用修饰键
+        const modifiedChord = applyModifiers(baseChord);
+        
+        // 播放和弦
+        currentChord.value = modifiedChord;
+        audioSystem.playChord(modifiedChord);
       }
-      
-      const baseChord = KEY_TO_CHORD[key];
-      
-      // 应用修饰键
-      const modifiedChord = applyModifiers(baseChord);
-      
-      // 播放和弦
-      currentChord.value = modifiedChord;
-      audioSystem.playChord(modifiedChord);
     }
   }
   
@@ -230,7 +230,7 @@ export function useKeyboardHandler() {
     chord.notes = chord.calculateChordNotes();
     
     // 播放和弦 - 持续时间设置为较长，避免音效衰减太快
-    audioSystem.playChord(chord, '2n');
+    audioSystem.playChord(chord, '1n');
     
     // 更新当前和弦
     currentChord.value = chord;

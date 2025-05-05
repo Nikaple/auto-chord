@@ -160,7 +160,7 @@ export default class AudioSystem {
   }
 
   // 播放和弦
-  playChord(chord: Chord, duration: string = '2n'): void {
+  playChord(chord: Chord, duration: string = '1n'): void {
     // 停止当前活跃的音符以避免叠加
     this.stopActiveNotes();
     
@@ -172,7 +172,7 @@ export default class AudioSystem {
     
     // 只有在采样器加载完成后才播放
     if (this.sampler && this.samplerLoaded) {
-      // 根据力度设置调整和弦的速度
+      // The velocity also affects the attack and how long it takes for the sound to get up to full volume!
       const velocity = 0.5 + (this.defaultSettings.dynamics * 0.5);
       this.sampler.triggerAttackRelease(noteNames, duration, undefined, velocity);
     }

@@ -138,8 +138,6 @@ const pianoKeys = [
 
 // 记录鼠标按下的键
 const mouseActiveKey = ref<string | null>(null);
-// 长按计时器
-let pressTimer: number | null = null;
 
 // 获取和弦后缀显示
 function getChordSuffix(type: ChordType): string {
@@ -224,26 +222,18 @@ function getNoteEquivalent(note: string): string {
 function handleMouseDown(key: string, mapping: { root: string, type: ChordType } | undefined) {
   if (!mapping) return;
   
+  // 如果键盘已经激活，不重复触发
+  if (mouseActiveKey.value === key) return;
+  
   // 设置当前激活的按键
   mouseActiveKey.value = key;
   
   // 播放对应的和弦
   playChord(mapping);
-  
-  // 设置长按定时器，每隔一段时间重新触发和弦声音
-  pressTimer = window.setInterval(() => {
-    playChord(mapping);
-  }, 1000); // 每秒重新触发一次
 }
 
 // 鼠标抬起处理函数
 function handleMouseUp() {
-  // 清除长按定时器
-  if (pressTimer) {
-    clearInterval(pressTimer);
-    pressTimer = null;
-  }
-  
   // 如果没有键盘按键处于活跃状态，则停止当前和弦
   if (activeKeys.value.length === 0) {
     audioSystem.stopAll();
