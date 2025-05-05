@@ -32,13 +32,11 @@ import { computed } from 'vue'
 // 使用和弦 store
 const chordStore = useChordStore()
 const currentChord = computed(() => chordStore.currentChord)
-const modifiers = computed(() => chordStore.modifiers)
 
 // 获取简短的和弦名称
-function getShortChordName(chord: Chord): string {
+function getShortChordName(chord: { name: string } & Partial<Chord>): string {
   const name = chord.name;
-  return name.replace('major seventh', 'M7')
-            .replace('major', 'maj')
+  return name.replace('major', 'maj')
             .replace('minor', 'm')
             .replace('diminished', 'dim')
             .replace('augmented', 'aug')
@@ -49,12 +47,6 @@ function getShortChordName(chord: Chord): string {
 function getShortNoteName(note: string): string {
   return note.replace('sharp', '#')
             .replace('flat', 'b');
-}
-
-// 检查指定的和弦类型是否激活
-function isTypeActive(typeName: string): boolean {
-  if (!currentChord.value) return false;
-  return currentChord.value.type === ChordType[typeName as keyof typeof ChordType];
 }
 
 // 获取简短的和弦类型标签

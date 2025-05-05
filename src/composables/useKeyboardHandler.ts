@@ -1,44 +1,6 @@
-import { ref, onMounted, onUnmounted, reactive, computed } from 'vue'
-import { ChordType, Chord } from '@/utils/music'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useChordStore } from '@/stores/chordStore'
 
-// 键盘到和弦的映射（C大调）
-const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
-  // 第二排按键 - C大调基础和弦 (I ii iii IV V vi viio) - 向右移动一位
-  's': { root: 'C', type: ChordType.MAJOR },         // C大三和弦 (I)
-  'd': { root: 'D', type: ChordType.MINOR },         // D小三和弦 (ii)
-  'f': { root: 'E', type: ChordType.MINOR },         // E小三和弦 (iii)
-  'g': { root: 'F', type: ChordType.MAJOR },         // F大三和弦 (IV)
-  'h': { root: 'G', type: ChordType.MAJOR },         // G大三和弦 (V)
-  'j': { root: 'A', type: ChordType.MINOR },         // A小三和弦 (vi)
-  'k': { root: 'B', type: ChordType.DIMINISHED },    // B减三和弦 (viio)
-  'l': { root: 'C', type: ChordType.MAJOR },         // C大三和弦 (I，高八度)
-  
-  // 第一排按键 - 根音离调的和弦 - 向右移动一位
-  'e': { root: 'C♯', type: ChordType.DIMINISHED },   // C♯减三和弦
-  'i': { root: 'A♯', type: ChordType.DIMINISHED },   // A♯减三和弦
-  'r': { root: 'D♯', type: ChordType.AUGMENTED },    // D♯增三和弦
-  'y': { root: 'F♯', type: ChordType.DIMINISHED },   // F♯减三和弦
-  'u': { root: 'G♯', type: ChordType.MAJOR },        // G♯大三和弦
-  
-  // 第三排按键 - C大调常见七和弦
-  'z': { root: 'C', type: ChordType.MAJOR_SEVENTH },       // Cmaj7 (I7)
-  'x': { root: 'D', type: ChordType.MINOR_SEVENTH },       // Dm7 (ii7)
-  'c': { root: 'E', type: ChordType.MINOR_SEVENTH },       // Em7 (iii7)
-  'v': { root: 'F', type: ChordType.MAJOR_SEVENTH },       // Fmaj7 (IV7)
-  'b': { root: 'G', type: ChordType.DOMINANT_SEVENTH },    // G7 (V7)
-  'n': { root: 'A', type: ChordType.MINOR_SEVENTH },       // Am7 (vi7)
-  'm': { root: 'B', type: ChordType.HALF_DIMINISHED_SEVENTH },  // Bm7b5 (viio7)
-  ',': { root: 'C', type: ChordType.MAJOR_SEVENTH }        // Cmaj7 (I7，高八度)
-};
-
-// 默认八度
-const DEFAULT_OCTAVE = 4;
-// 对于高八度键的八度偏移 - 由于删除了高八度键，此处可以清空
-const HIGH_OCTAVE_KEYS: string[] = [];
-
-// 持续播放的间隔时间（毫秒）
-const SUSTAIN_INTERVAL = 1000;
 
 // 检测设备类型
 const detectDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
@@ -67,7 +29,6 @@ export function useKeyboardHandler() {
   const deviceType = ref<'mobile' | 'tablet' | 'desktop'>('desktop');
   
   // 存储每个键的持续播放定时器
-  const sustainTimers = reactive(new Map<string, number>());
   
   // 处理键盘按下事件
   function handleKeyDown(event: KeyboardEvent) {
@@ -88,17 +49,17 @@ export function useKeyboardHandler() {
     // 阻止浏览器默认行为，如Ctrl+W关闭标签页、Ctrl+A全选等
     if (event.ctrlKey && /^[a-z]$/i.test(key)) {
       event.preventDefault();
-    } else if (event.altKey && KEY_TO_CHORD[key]) {
+    } else if (event.altKey && chordStore.KEY_TO_CHORD[key]) {
       event.preventDefault();
     }
     
     // 如果是和弦键盘的按键
-    if (KEY_TO_CHORD[key]) {
+    if (chordStore.KEY_TO_CHORD[key]) {
       // 检查按键是否已经在激活列表中，如果已经激活则不重新触发和弦
       if (!chordStore.pressedKeys.has(key)) {
         chordStore.pressedKeys.add(key);
         
-        const baseChord = KEY_TO_CHORD[key];
+        const baseChord = chordStore.KEY_TO_CHORD[key];
         
         // 应用修饰键并播放和弦
         const modifiedChord = chordStore.applyModifiers(baseChord);
@@ -127,14 +88,14 @@ export function useKeyboardHandler() {
     chordStore.pressedKeys.delete(key);
     
     // 如果是和弦键
-    if (KEY_TO_CHORD[key]) {
+    if (chordStore.KEY_TO_CHORD[key]) {
       // 检查是否还有其他键被按下
-      const remainingChordKeys = Array.from(chordStore.pressedKeys).filter(k => KEY_TO_CHORD[k]);
+      const remainingChordKeys = Array.from(chordStore.pressedKeys).filter(k => chordStore.KEY_TO_CHORD[k]);
       
       if (remainingChordKeys.length > 0) {
         // 播放最后一个按下的和弦
         const lastKey = remainingChordKeys[remainingChordKeys.length - 1];
-        const baseChord = KEY_TO_CHORD[lastKey];
+        const baseChord = chordStore.KEY_TO_CHORD[lastKey];
         const modifiedChord = chordStore.applyModifiers(baseChord);
         chordStore.playChord(modifiedChord);
       } else {
@@ -145,53 +106,10 @@ export function useKeyboardHandler() {
   }
   
   // 设置持续播放定时器
-  function startSustainTimer(key: string) {
-    // 先清除可能存在的定时器
-    stopSustainTimer(key);
-    
-    // 设置新的定时器，每隔一段时间重新触发和弦
-    const timerId = window.setInterval(() => {
-      if (chordStore.pressedKeys.has(key)) {
-        playChordForKey(key);
-      } else {
-        stopSustainTimer(key);
-      }
-    }, SUSTAIN_INTERVAL);
-    
-    sustainTimers.set(key, timerId);
-  }
   
   // 停止持续播放定时器
-  function stopSustainTimer(key: string) {
-    const timerId = sustainTimers.get(key);
-    if (timerId) {
-      clearInterval(timerId);
-      sustainTimers.delete(key);
-    }
-  }
   
   // 为指定的键播放和弦
-  function playChordForKey(key: string) {
-    // 获取和弦配置
-    const chordConfig = KEY_TO_CHORD[key];
-    if (!chordConfig) return;
-    
-    // 确定八度
-    let octave = DEFAULT_OCTAVE;
-    if (HIGH_OCTAVE_KEYS.includes(key)) {
-      octave = DEFAULT_OCTAVE + 1;
-    }
-    
-    // 创建基础和弦
-    const baseChordConfig = { 
-      root: chordConfig.root, 
-      type: chordConfig.type 
-    };
-    
-    // 应用修饰符并播放和弦
-    const chord = chordStore.applyModifiers(baseChordConfig);
-    chordStore.playChord(chord);
-  }
   
   // 初始化设备类型检测
   onMounted(() => {
@@ -238,7 +156,7 @@ export function useKeyboardHandler() {
   
   return {
     modifiers: computed(() => chordStore.modifiers),
-    chordMapping: KEY_TO_CHORD,
+    chordMapping: computed(() => chordStore.KEY_TO_CHORD),
     pressedKeys: computed(() => chordStore.pressedKeys),
     activeKeys: computed(() => Array.from(chordStore.pressedKeys)),
     deviceType: computed(() => deviceType.value),

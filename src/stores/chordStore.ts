@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
-import { Chord, ChordType, ALL_NOTES, transposeNote, getChordByDegree } from '@/utils/music'
+import { Chord, ChordType, ALL_NOTES, getChordByDegree } from '@/utils/music'
 import AudioSystem from '@/utils/audioSystem'
-import * as Tone from 'tone'
 
 // 键盘映射到级数（而不是固定的和弦）
 const KEY_TO_DEGREE: Record<string, { degree: number, octave: number, forceType?: ChordType }> = {
@@ -55,7 +54,7 @@ export const useChordStore = defineStore('chord', () => {
     
     // 处理每个键位映射
     for (const [key, config] of Object.entries(KEY_TO_DEGREE)) {
-      const chord = getChordByDegree(currentKey.value, config.degree, config.octave);
+      const chord = getChordByDegree(currentKey.value, config.degree, config.octave, config.forceType);
       
       // 获取和弦根音在音阶中的位置
       const chordRootIndex = ALL_NOTES.indexOf(chord.root);
@@ -63,11 +62,11 @@ export const useChordStore = defineStore('chord', () => {
       // 计算八度调整
       let adjustedOctave = config.octave;
       
-      // 对于白键区域（基础和弦）进行特殊处理
-      if ('sdfghjkl'.includes(key)) {
+      // 对于基础和弦（白键区域和七和弦区域）进行特殊处理
+      if ('sdfghjkl'.includes(key) || 'zxcvbnm,'.includes(key)) {
         // G调到B调的情况（音高索引7-11）
         if (currentKeyIndex >= 7 && currentKeyIndex <= 11) {
-          // 对于白键区域，基础八度降低1
+          // 对于基础和弦区域，基础八度降低1
           adjustedOctave = config.octave - 1;
           // 如果和弦根音的音高低于当前调的主音，则升高八度
           if (chordRootIndex < currentKeyIndex) {

@@ -54,7 +54,6 @@
             class="key black-key" 
             :class="{ 'active': isKeyActive(key) }"
             :data-note="getNoteFromKey(key)"
-            :style="getBlackKeyPosition(key)"
             @mousedown="handleMouseDown(key, chordMapping[key])"
             @mouseup="handleMouseUp()"
             @mouseleave="handleMouseUp()"
@@ -104,7 +103,6 @@
 import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { Chord, ChordType, ALL_NOTES } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import * as Tone from 'tone';
 import { useChordStore } from '@/stores/chordStore'
 
 // 使用和弦 store
@@ -117,8 +115,6 @@ const currentKey = computed({
 
 // 使用键盘处理器
 const { 
-  handleKeyDown,
-  handleKeyUp,
   modifiers,
   isMobileDevice
 } = useKeyboardHandler();
@@ -252,10 +248,6 @@ function getChordLabel(mapping: { root: string, type: ChordType } | undefined): 
 }
 
 // 检查是否是黑键
-function isBlackKey(noteName: string | undefined): boolean {
-  if (!noteName) return false;
-  return noteName.includes('#') || noteName.includes('b');
-}
 
 // 检查键是否活跃 - 修改为包含键盘和鼠标激活的按键
 const isKeyActive = (key: string) => {
@@ -263,14 +255,6 @@ const isKeyActive = (key: string) => {
 };
 
 // 获取音符的等价名称（例如C♯=D♭）
-function getNoteEquivalent(note: string): string {
-  const equivalents: Record<string, string> = {
-    'C♯': 'D♭', 'D♯': 'E♭', 'F♯': 'G♭', 'G♯': 'A♭', 'A♯': 'B♭',
-    'D♭': 'C♯', 'E♭': 'D♯', 'G♭': 'F♯', 'A♭': 'G♯', 'B♭': 'A♯'
-  };
-  
-  return equivalents[note] || note;
-}
 
 // 鼠标按下处理函数
 function handleMouseDown(key: string, mapping: { root: string, type: ChordType } | undefined) {
@@ -407,33 +391,11 @@ function getNoteFromKey(key: string): string {
 }
 
 // 获取和弦显示名称
-function getChordDisplayName(chord: Chord | null): string {
+function getChordDisplayName(chord: { name: string } & Partial<Chord> | null): string {
   if (!chord) return '';
   return chord.name;
 }
 
-// 获取和弦类型后缀
-function getChordTypeSuffix(type: ChordType): string {
-  switch (type) {
-    case ChordType.MAJOR: return '';
-    case ChordType.MINOR: return 'm';
-    case ChordType.DIMINISHED: return 'dim';
-    case ChordType.AUGMENTED: return 'aug';
-    case ChordType.SUSPENDED_SECOND: return 'sus2';
-    case ChordType.SUSPENDED_FOURTH: return 'sus4';
-    case ChordType.DOMINANT_SEVENTH: return '7';
-    case ChordType.MAJOR_SEVENTH: return 'M7';
-    case ChordType.MINOR_SEVENTH: return 'm7';
-    case ChordType.HALF_DIMINISHED_SEVENTH: return 'm7b5';
-    default: return '';
-  }
-}
-
-// 获取黑键位置 - 使用data-note属性或style
-function getBlackKeyPosition(key: string): Record<string, string> {
-  // 由于已经使用data-note属性设置位置，这里可以返回空对象
-  return {};
-}
 
 // 处理调性变更
 function handleKeyChange(event: Event) {
