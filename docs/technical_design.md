@@ -220,11 +220,11 @@ const keyToChordMap = {
   'u': { root: 'B', type: 'diminished' },
   
   // 第二排 - 变化和弦
-  'a': { root: 'C#', type: 'diminished' },
-  's': { root: 'D#', type: 'augmented' },
-  'd': { root: 'F#', type: 'diminished' },
-  'f': { root: 'F#', type: 'augmented' },
-  'g': { root: 'G#', type: 'diminished' },
+  'a': { root: 'C♯', type: 'diminished' },
+  's': { root: 'D♯', type: 'augmented' },
+  'd': { root: 'F♯', type: 'diminished' },
+  'f': { root: 'F♯', type: 'augmented' },
+  'g': { root: 'G♯', type: 'diminished' },
   'h': { root: 'Bb', type: 'major' },
   
   // 第三排 - 七和弦
@@ -326,7 +326,7 @@ export function useKeyboardHandler() {
 // 伪代码示例
 class Note {
   constructor(name, octave) {
-    this.name = name; // C, C#, D, ...
+    this.name = name; // C, C♯, D, ...
     this.octave = octave; // 0-8
     this.frequency = this.calculateFrequency();
   }
@@ -508,7 +508,7 @@ UI状态更新 <- 更新显示组件 <- 分发和弦事件 <-+
 ```javascript
 // 音符和和弦类型
 interface Note {
-  name: string;    // 音符名称 (C, C#, D等)
+  name: string;    // 音符名称 (C, C♯, D等)
   octave: number;  // 八度 (通常3-5)
   frequency: number; // 频率 (Hz)
 }

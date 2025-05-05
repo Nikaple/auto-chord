@@ -14,11 +14,11 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   'k': { root: 'B', type: ChordType.DIMINISHED },    // B减三和弦 (viio)，原来是J
   
   // 第一排按键 - 根音离调的和弦 - 向右移动一位
-  'e': { root: 'C#', type: ChordType.DIMINISHED },   // C#减三和弦，原来是W
-  'r': { root: 'D#', type: ChordType.AUGMENTED },    // D#增三和弦，原来是E
-  'y': { root: 'F#', type: ChordType.DIMINISHED },   // F#减三和弦，原来是T
-  'u': { root: 'G#', type: ChordType.DIMINISHED },   // G#减三和弦，原来是Y
-  'i': { root: 'A#', type: ChordType.MAJOR },        // A#大三和弦，原来是U
+  'e': { root: 'C♯', type: ChordType.DIMINISHED },   // G♯减三和弦，原来是Y
+  'i': { root: 'A♯', type: ChordType.DIMINISHED },   // C♯减三和弦，原来是W
+  'r': { root: 'D♯', type: ChordType.AUGMENTED },    // D♯增三和弦，原来是E
+  'y': { root: 'F♯', type: ChordType.DIMINISHED },   // F♯减三和弦，原来是T
+  'u': { root: 'G♯', type: ChordType.MAJOR },        // A♯大三和弦，原来是U
   
   // 第三排按键 - C大调常见七和弦
   'z': { root: 'C', type: ChordType.MAJOR_SEVENTH },       // Cmaj7 (I7)
@@ -136,7 +136,7 @@ export function useKeyboardHandler() {
         const modifiedChord = chordStore.applyModifiers(baseChord);
         chordStore.playChord(modifiedChord);
       } else {
-        // 停止和弦
+        // 停止和弦声音但保留当前和弦显示
         chordStore.stopChord();
       }
     }
@@ -211,7 +211,7 @@ export function useKeyboardHandler() {
       }
     }, true);
     
-    // 页面失去焦点时停止所有声音
+    // 页面失去焦点时停止所有声音，但保留和弦显示
     window.addEventListener('blur', () => {
       chordStore.stopChord();
     });

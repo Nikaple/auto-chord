@@ -16,19 +16,6 @@
         <span>类型：</span>
         <span class="chord-type-label">{{ getShortChordTypeLabel(currentChord.type) }}</span>
       </div>
-      
-      <div class="chord-qualities">
-        <span>和弦性质：</span>
-        <div class="quality-buttons">
-          <span class="quality" :class="{ active: (isTypeActive('MAJOR') || isTypeActive('MINOR')) && !isTypeActive('DOMINANT_SEVENTH') && !isTypeActive('MAJOR_SEVENTH') && !isTypeActive('MINOR_SEVENTH') && !isTypeActive('SUSPENDED_FOURTH') && !isTypeActive('SUSPENDED_SECOND') && !isTypeActive('DIMINISHED') }">大/小</span>
-          <span class="quality" :class="{ active: isTypeActive('SUSPENDED_FOURTH') && !isTypeActive('DOMINANT_SEVENTH') && !isTypeActive('MAJOR_SEVENTH') && !isTypeActive('MINOR_SEVENTH') && !isTypeActive('DIMINISHED') }">sus4</span>
-          <span class="quality" :class="{ active: isTypeActive('SUSPENDED_SECOND') && !isTypeActive('DOMINANT_SEVENTH') && !isTypeActive('MAJOR_SEVENTH') && !isTypeActive('MINOR_SEVENTH') && !isTypeActive('DIMINISHED') }">sus2</span>
-          <span class="quality" :class="{ active: isTypeActive('DOMINANT_SEVENTH') }">7</span>
-          <span class="quality" :class="{ active: isTypeActive('MAJOR_SEVENTH') }">maj7</span>
-          <span class="quality" :class="{ active: isTypeActive('MINOR_SEVENTH') }">m7</span>
-          <span class="quality" :class="{ active: isTypeActive('DIMINISHED') && !isTypeActive('HALF_DIMINISHED_SEVENTH') }">减</span>
-        </div>
-      </div>
     </div>
     
     <div v-else class="no-chord">
@@ -50,7 +37,8 @@ const modifiers = computed(() => chordStore.modifiers)
 // 获取简短的和弦名称
 function getShortChordName(chord: Chord): string {
   const name = chord.name;
-  return name.replace('major', 'maj')
+  return name.replace('major seventh', 'M7')
+            .replace('major', 'maj')
             .replace('minor', 'm')
             .replace('diminished', 'dim')
             .replace('augmented', 'aug')
@@ -72,19 +60,19 @@ function isTypeActive(typeName: string): boolean {
 // 获取简短的和弦类型标签
 function getShortChordTypeLabel(type: ChordType): string {
   const typeLabels: Record<string, string> = {
-    'major': '大三',
-    'minor': '小三',
-    'diminished': '减三',
-    'augmented': '增三',
+    'major': 'Major',
+    'minor': 'Minor',
+    'diminished': 'dim',
+    'augmented': 'aug',
     'sus2': 'sus2',
     'sus4': 'sus4',
-    '7': '属七',
-    'maj7': '大七',
-    'min7': '小七',
-    '6': '大六',
-    'min6': '小六',
-    '9': '九',
-    'm7b5': '半减七'
+    '7': 'dom7',
+    'M7': 'M7',
+    'min7': 'm7',
+    '6': '6',
+    'min6': 'm6',
+    '9': '9',
+    'm7b5': 'm7b5'
   };
   
   return typeLabels[type] || type;
@@ -135,44 +123,16 @@ h2 {
   font-weight: bold;
 }
 
-.chord-type, .chord-qualities {
+.chord-type {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   gap: 0.5rem;
 }
 
 .chord-type-label {
   font-weight: bold;
   color: var(--color-primary);
-}
-
-.chord-qualities {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.quality-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.quality {
-  display: inline-block;
-  padding: 0.3rem 0.6rem;
-  background-color: #eee;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  opacity: 0.6;
-  min-width: 45px;
-  text-align: center;
-}
-
-.quality.active {
-  background-color: var(--color-primary);
-  color: white;
-  opacity: 1;
 }
 
 .no-chord {
@@ -206,20 +166,6 @@ h2 {
   
   .note {
     font-size: 0.8rem;
-  }
-  
-  .quality-buttons {
-    gap: 0.3rem;
-  }
-  
-  .quality {
-    font-size: 0.9rem;
-    padding: 0.3rem 0.5rem;
-    min-width: 40px;
-    min-height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 }
 </style> 

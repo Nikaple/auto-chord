@@ -3,13 +3,13 @@
     <div class="piano-layout">
       <!-- 修饰键状态显示 -->
       <div class="modifier-status">
-        <button :class="{ active: modifiers.shift && !modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('shift')">大/小</button>
+        <button :class="{ active: modifiers.shift && !modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('shift')">M/m</button>
         <button :class="{ active: modifiers.ctrl && !modifiers.shift && !modifiers.alt }" @click.prevent="setChordType('ctrl')">sus4</button>
         <button :class="{ active: modifiers.alt && !modifiers.shift && !modifiers.ctrl }" @click.prevent="setChordType('alt')">sus2</button>
-        <button :class="{ active: modifiers.shift && modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('7')">7</button>
-        <button :class="{ active: modifiers.shift && modifiers.alt && !modifiers.ctrl }" @click.prevent="setChordType('maj7')">maj7</button>
+        <button :class="{ active: modifiers.shift && modifiers.ctrl && modifiers.alt }" @click.prevent="setChordType('dim')">dim</button>
+        <button :class="{ active: modifiers.shift && modifiers.alt && !modifiers.ctrl }" @click.prevent="setChordType('M7')">M7</button>
         <button :class="{ active: modifiers.ctrl && modifiers.alt && !modifiers.shift }" @click.prevent="setChordType('m7')">m7</button>
-        <button :class="{ active: modifiers.shift && modifiers.ctrl && modifiers.alt }" @click.prevent="setChordType('dim')">减</button>
+        <button :class="{ active: modifiers.shift && modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('7')">7</button>
         <div class="chord-info" v-if="currentChord">
           <strong>{{ getChordDisplayName(currentChord) }}</strong>
         </div>
@@ -30,7 +30,7 @@
             @touchstart.prevent="handleTouchStart(key, chordMapping[key])"
             @touchend.prevent="handleTouchEnd()"
             @touchcancel.prevent="handleTouchEnd()">
-            <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+            <span class="note-name" v-html="getChordLabel(chordMapping[key])"></span>
             <span class="key-label">{{ key.toUpperCase() }}</span>
           </div>
         </div>
@@ -50,7 +50,7 @@
             @touchstart.prevent="handleTouchStart(key, chordMapping[key])"
             @touchend.prevent="handleTouchEnd()"
             @touchcancel.prevent="handleTouchEnd()">
-            <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+            <span class="note-name" v-html="getChordLabel(chordMapping[key])"></span>
             <span class="key-label">{{ key.toUpperCase() }}</span>
           </div>
         </div>
@@ -69,21 +69,21 @@
           @touchstart.prevent="handleTouchStart(key, chordMapping[key])"
           @touchend.prevent="handleTouchEnd()"
           @touchcancel.prevent="handleTouchEnd()">
-          <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+          <span class="note-name" v-html="getChordLabel(chordMapping[key])"></span>
           <span class="key-label">{{ key.toUpperCase() }}</span>
         </div>
       </div>
     </div>
     
     <div class="keyboard-help" v-if="!isMobileDevice">
-      <p>使用修饰键改变和弦类型：</p>
+      <p>Modifier keys for chord types:</p>
       <ul>
-        <li><strong>Shift</strong>: 转换大小调性质</li>
-        <li><strong>Ctrl</strong>: sus4 和弦</li>
-        <li><strong>Alt</strong>: sus2 和弦</li>
-        <li><strong>Shift + Ctrl</strong>: 属七和弦</li>
-        <li><strong>Shift + Alt</strong>: 大七和弦</li>
-        <li><strong>Ctrl + Alt</strong>: 小七和弦</li>
+        <li><strong>Shift</strong>: Toggle Major/Minor</li>
+        <li><strong>Ctrl</strong>: sus4 chord</li>
+        <li><strong>Alt</strong>: sus2 chord</li>
+        <li><strong>Shift + Ctrl</strong>: Dominant 7th</li>
+        <li><strong>Shift + Alt</strong>: Major 7th</li>
+        <li><strong>Ctrl + Alt</strong>: Minor 7th</li>
       </ul>
     </div>
   </div>
@@ -158,7 +158,7 @@ onMounted(() => {
   window.addEventListener('keydown', chordStore.handleKeyDown);
   window.addEventListener('keyup', chordStore.handleKeyUp);
   
-  // 页面失去焦点时停止所有声音
+  // 页面失去焦点时停止所有声音，但保留和弦显示
   window.addEventListener('blur', () => {
     chordStore.stopChord();
   });
@@ -196,7 +196,7 @@ function getChordSuffix(type: ChordType): string {
     case ChordType.SUSPENDED_SECOND: return 'sus2';
     case ChordType.SUSPENDED_FOURTH: return 'sus4';
     case ChordType.DOMINANT_SEVENTH: return '7';
-    case ChordType.MAJOR_SEVENTH: return 'maj7';
+    case ChordType.MAJOR_SEVENTH: return 'M7';
     case ChordType.MINOR_SEVENTH: return 'm7';
     case ChordType.HALF_DIMINISHED_SEVENTH: return 'm7b5'; // 半减七和弦显示m7b5
     case ChordType.SIXTH: return '6';
@@ -206,12 +206,19 @@ function getChordSuffix(type: ChordType): string {
   }
 }
 
+// 格式化音符名称，将升降号转换为专业音乐符号的上下标
+function formatNoteName(note: string): string {
+  return note
+    .replace(/♯/g, '<sup>♯</sup>')
+    .replace(/♭/g, '<sub>♭</sub>');
+}
+
 // 获取和弦标签显示
 function getChordLabel(mapping: { root: string, type: ChordType } | undefined): string {
   if (!mapping) return '';
   
   // 获取基础和弦信息
-  const rootNote = mapping.root;
+  const rootNote = formatNoteName(mapping.root);
   
   // 基于当前修饰键状态预览和弦类型
   let previewType = mapping.type;
@@ -255,11 +262,11 @@ const isKeyActive = (key: string) => {
   return activeKeysUI.value.includes(key) || mouseActiveKey.value === key;
 };
 
-// 获取音符的等价名称（例如C#=Db）
+// 获取音符的等价名称（例如C♯=D♭）
 function getNoteEquivalent(note: string): string {
   const equivalents: Record<string, string> = {
-    'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb',
-    'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+    'C♯': 'D♭', 'D♯': 'E♭', 'F♯': 'G♭', 'G♯': 'A♭', 'A♯': 'B♭',
+    'D♭': 'C♯', 'E♭': 'D♯', 'G♭': 'F♯', 'A♭': 'G♯', 'B♭': 'A♯'
   };
   
   return equivalents[note] || note;
@@ -287,7 +294,7 @@ function handleMouseUp() {
     chordStore.pressedKeys.delete(mouseActiveKey.value);
   }
   
-  // 停止播放并清除状态
+  // 停止播放但不清除和弦显示
   chordStore.stopChord();
   
   // 清除鼠标激活的按键
@@ -328,7 +335,7 @@ function setChordType(type: string) {
       newModifiers.shift = true;
       newModifiers.ctrl = true;
       break;
-    case 'maj7': // 大七
+    case 'M7': // 大七 (修改为M7)
       newModifiers.shift = true;
       newModifiers.alt = true;
       // 特殊处理Alt键
@@ -390,11 +397,11 @@ function setChordType(type: string) {
 // 获取音符名称
 function getNoteFromKey(key: string): string {
   const noteMap: Record<string, string> = {
-    'e': 'C#',
-    'r': 'D#',
-    'y': 'F#',
-    'u': 'G#',
-    'i': 'A#'
+    'e': 'C♯',
+    'r': 'D♯',
+    'y': 'F♯',
+    'u': 'G♯',
+    'i': 'A♯'
   };
   return noteMap[key] || '';
 }
@@ -415,24 +422,17 @@ function getChordTypeSuffix(type: ChordType): string {
     case ChordType.SUSPENDED_SECOND: return 'sus2';
     case ChordType.SUSPENDED_FOURTH: return 'sus4';
     case ChordType.DOMINANT_SEVENTH: return '7';
-    case ChordType.MAJOR_SEVENTH: return 'maj7';
+    case ChordType.MAJOR_SEVENTH: return 'M7';
     case ChordType.MINOR_SEVENTH: return 'm7';
     case ChordType.HALF_DIMINISHED_SEVENTH: return 'm7b5';
     default: return '';
   }
 }
 
-// 获取黑键位置
+// 获取黑键位置 - 使用data-note属性或style
 function getBlackKeyPosition(key: string): Record<string, string> {
-  const positions: Record<string, string> = {
-    'e': 'left: 10.7%;',
-    'r': 'left: 25%;',
-    'y': 'left: 53.6%;',
-    'u': 'left: 67.9%;',
-    'i': 'left: 82.2%;'
-  };
-  
-  return { left: positions[key]?.split(':')?.[1] || '0%' };
+  // 由于已经使用data-note属性设置位置，这里可以返回空对象
+  return {};
 }
 </script>
 
@@ -516,17 +516,33 @@ function getBlackKeyPosition(key: string): Record<string, string> {
 }
 
 /* 黑键位置 */
-.black-key[data-note="C#"] { left: 10.7%; }
-.black-key[data-note="D#"] { left: 25%; }
-.black-key[data-note="F#"] { left: 53.6%; }
-.black-key[data-note="G#"] { left: 67.9%; }
-.black-key[data-note="A#"] { left: 82.2%; }
+.black-key[data-note="C♯"] { left: 10.7%; }
+.black-key[data-note="D♯"] { left: 25%; }
+.black-key[data-note="F♯"] { left: 53.6%; }
+.black-key[data-note="G♯"] { left: 67.9%; }
+.black-key[data-note="A♯"] { left: 82.2%; }
 
 /* 按键文字样式 */
 .note-name {
   font-weight: bold;
   font-size: 0.9rem;
   margin-bottom: 5px;
+}
+
+.note-name sup {
+  font-size: 0.65em;
+  position: relative;
+  top: -0.4em;
+  margin-left: 1px;
+  font-weight: normal;
+}
+
+.note-name sub {
+  font-size: 0.65em;
+  position: relative;
+  bottom: -0.2em;
+  margin-left: 1px;
+  font-weight: normal;
 }
 
 .key-label {
@@ -655,11 +671,11 @@ function getBlackKeyPosition(key: string): Record<string, string> {
 
   .note-name {
     font-size: 0.75rem;
-    margin-bottom: 3px;
+    margin-bottom: 0;
   }
 
   .key-label {
-    font-size: 0.65rem;
+    display: none;
   }
 
   .modifier-status {
@@ -702,11 +718,11 @@ function getBlackKeyPosition(key: string): Record<string, string> {
 
   .note-name {
     font-size: 0.7rem;
-    margin-bottom: 2px;
+    margin-bottom: 0;
   }
 
   .key-label {
-    font-size: 0.6rem;
+    display: none;
   }
 
   .modifier-status {

@@ -16,11 +16,11 @@ const KEY_TO_CHORD: Record<string, { root: string, type: ChordType }> = {
   'k': { root: 'B', type: ChordType.DIMINISHED }, // Bdim (vii°)
   
   // 第一排按键 - 特殊和弦
-  'e': { root: 'C#', type: ChordType.DIMINISHED },
-  'r': { root: 'D#', type: ChordType.AUGMENTED },
-  'y': { root: 'F#', type: ChordType.DIMINISHED },
-  'u': { root: 'G#', type: ChordType.DIMINISHED },
-  'i': { root: 'A#', type: ChordType.MAJOR },
+  'e': { root: 'C♯', type: ChordType.DIMINISHED },
+  'r': { root: 'D♯', type: ChordType.AUGMENTED },
+  'y': { root: 'F♯', type: ChordType.DIMINISHED },
+  'u': { root: 'G♯', type: ChordType.DIMINISHED },
+  'i': { root: 'A♯', type: ChordType.MAJOR },
   
   // 第三排按键 - 七和弦
   'z': { root: 'C', type: ChordType.MAJOR_SEVENTH },
@@ -113,6 +113,12 @@ export const useChordStore = defineStore('chord', () => {
   // 停止播放
   function stopChord() {
     audioSystem.stopAll()
+    // 不再清除当前和弦信息
+    // currentChord.value = null
+  }
+  
+  // 清除当前和弦（仅在需要时调用）
+  function clearChord() {
     currentChord.value = null
   }
   
@@ -184,6 +190,7 @@ export const useChordStore = defineStore('chord', () => {
     setModifiers,
     playChord,
     stopChord,
+    clearChord,
     handleKeyDown,
     handleKeyUp,
     initAudio,

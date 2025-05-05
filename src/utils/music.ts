@@ -12,6 +12,11 @@ export class Note {
 
   // 获取音符频率
   static getFrequency(note: string, octave: number): number {
+    // 将音乐符号转换为标准符号
+    const standardNote = note
+      .replace('♯', '#')
+      .replace('♭', 'b');
+
     const notes: Record<string, number> = {
       'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3,
       'E': 4, 'F': 5, 'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8,
@@ -24,7 +29,7 @@ export class Note {
     const A4_NOTE = 9; // A is the 9th note in the chromatic scale
     
     // 计算距离A4的半音数
-    const semitones = (octave - A4_OCTAVE) * 12 + notes[note] - A4_NOTE;
+    const semitones = (octave - A4_OCTAVE) * 12 + notes[standardNote] - A4_NOTE;
     
     // 使用等比关系计算频率: f = A4 * 2^(n/12)
     return A4 * Math.pow(2, semitones / 12);
@@ -32,7 +37,11 @@ export class Note {
 
   // 获取音符完整名称
   get fullName(): string {
-    return `${this.name}${this.octave}`;
+    // 将音乐符号转换为标准符号
+    const standardName = this.name
+      .replace('♯', '#')
+      .replace('♭', 'b');
+    return `${standardName}${this.octave}`;
   }
 }
 
@@ -45,7 +54,7 @@ export enum ChordType {
   SUSPENDED_SECOND = 'sus2',
   SUSPENDED_FOURTH = 'sus4',
   DOMINANT_SEVENTH = '7',
-  MAJOR_SEVENTH = 'maj7',
+  MAJOR_SEVENTH = 'M7',
   MINOR_SEVENTH = 'min7',
   HALF_DIMINISHED_SEVENTH = 'm7b5',
   SIXTH = '6',
@@ -75,7 +84,7 @@ export class Chord {
     const allNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     
     // 找出根音在数组中的索引
-    const rootIndex = allNotes.indexOf(rootName);
+    const rootIndex = allNotes.indexOf(rootName.replace('♯', '#').replace('♭', 'b'));
     
     // 根据和弦类型添加其他音符
     switch (this.type) {
@@ -181,7 +190,7 @@ export class Chord {
       case ChordType.DOMINANT_SEVENTH:
         return '7';
       case ChordType.MAJOR_SEVENTH:
-        return 'maj7';
+        return 'M7';
       case ChordType.MINOR_SEVENTH:
         return 'm7';
       case ChordType.HALF_DIMINISHED_SEVENTH:

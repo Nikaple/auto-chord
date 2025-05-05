@@ -19,11 +19,11 @@
 | T    | G       | G-B-D    |
 | Y    | Am      | A-C-E    |
 | U    | Bdim    | B-D-F    |
-| A    | C#dim   | C#-E-G   |
-| S    | D#aug   | D#-G-B   |
-| D    | F#dim   | F#-A-C   |
-| F    | F#aug   | F#-A#-D  |
-| G    | G#dim   | G#-B-D   |
+| A    | C♯dim   | C♯-E-G   |
+| S    | D♯aug   | D♯-G-B   |
+| D    | F♯dim   | F♯-A-C   |
+| F    | F♯aug   | F♯-A♯-D  |
+| G    | G♯dim   | G♯-B-D   |
 | H    | Bb      | Bb-D-F   |
 | Z    | Cmaj7   | C-E-G-B  |
 | X    | Dm7     | D-F-A-C  |
