@@ -6,9 +6,9 @@
         <span :class="{ active: shift }">Shift</span>
         <span :class="{ active: ctrl }">Ctrl</span>
         <span :class="{ active: alt }">Alt</span>
-        <div class="chord-info" v-if="currentChord">
+        <div class="chord-info">
           <span>当前和弦:</span>
-          <strong>{{ currentChord.name }}</strong>
+          <strong>{{ currentChord ? currentChord.name : '无' }}</strong>
         </div>
       </div>
       
@@ -109,8 +109,12 @@ const alt = computed(() => modifiers.value.alt);
 
 // 阻止默认键盘事件
 function preventDefaultKeys(e: KeyboardEvent) {
-  // 阻止修饰键+字母的默认行为(如Ctrl+A全选)
-  if ((e.ctrlKey || e.altKey) && /^[a-z]$/i.test(e.key)) {
+  // 阻止修饰键+字母的默认行为(如Ctrl+A全选, Ctrl+W关闭标签页)
+  if (e.ctrlKey && /^[a-z]$/i.test(e.key)) {
+    e.preventDefault();
+  }
+  // 阻止Alt+字母的默认行为
+  else if (e.altKey && /^[a-z]$/i.test(e.key)) {
     e.preventDefault();
   }
 }
