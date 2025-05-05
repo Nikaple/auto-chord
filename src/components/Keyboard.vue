@@ -3,9 +3,13 @@
     <div class="piano-layout">
       <!-- 修饰键状态显示 -->
       <div class="modifier-status">
-        <span :class="{ active: modifiers.shift }" @click="toggleModifier('shift')">Shift</span>
-        <span :class="{ active: modifiers.ctrl }" @click="toggleModifier('ctrl')">Ctrl</span>
-        <span :class="{ active: modifiers.alt }" @click="toggleModifier('alt')">Alt</span>
+        <button :class="{ active: modifiers.shift && !modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('shift')">大/小</button>
+        <button :class="{ active: modifiers.ctrl && !modifiers.shift && !modifiers.alt }" @click.prevent="setChordType('ctrl')">sus4</button>
+        <button :class="{ active: modifiers.alt && !modifiers.shift && !modifiers.ctrl }" @click.prevent="setChordType('alt')">sus2</button>
+        <button :class="{ active: modifiers.shift && modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('7')">7</button>
+        <button :class="{ active: modifiers.shift && modifiers.alt && !modifiers.ctrl }" @click.prevent="setChordType('maj7')">maj7</button>
+        <button :class="{ active: modifiers.ctrl && modifiers.alt && !modifiers.shift }" @click.prevent="setChordType('m7')">m7</button>
+        <button :class="{ active: modifiers.shift && modifiers.ctrl && modifiers.alt }" @click.prevent="setChordType('dim')">减</button>
         <div class="chord-info" v-if="currentChord">
           <strong>{{ getChordDisplayName(currentChord) }}</strong>
         </div>
@@ -39,6 +43,7 @@
             class="key black-key" 
             :class="{ 'active': isKeyActive(key) }"
             :data-note="getNoteFromKey(key)"
+            :style="getBlackKeyPosition(key)"
             @mousedown="handleMouseDown(key, chordMapping[key])"
             @mouseup="handleMouseUp()"
             @mouseleave="handleMouseUp()"
@@ -99,7 +104,8 @@ const currentChord = computed(() => chordStore.currentChord)
 const { 
   handleKeyDown,
   handleKeyUp,
-  modifiers
+  modifiers,
+  isMobileDevice
 } = useKeyboardHandler();
 
 // 当前修饰键状态的计算属性，使其在模板中可响应
@@ -112,6 +118,12 @@ const activeKeysUI = computed(() => Array.from(chordStore.pressedKeys))
 
 // 阻止默认键盘事件
 function preventDefaultKeys(e: KeyboardEvent) {
+  // 阻止Alt键的默认行为
+  if (e.key === 'Alt' || e.altKey) {
+    e.preventDefault();
+    return;
+  }
+  
   // 阻止修饰键+字母的默认行为(如Ctrl+A全选, Ctrl+W关闭标签页)
   if (e.ctrlKey && /^[a-z]$/i.test(e.key)) {
     e.preventDefault();
@@ -142,9 +154,6 @@ onMounted(() => {
 
   window.addEventListener('keydown', preventDefaultKeys, true);
   
-  // 检测是否为移动设备
-  isMobileDevice.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
   // 添加事件监听器
   window.addEventListener('keydown', chordStore.handleKeyDown);
   window.addEventListener('keyup', chordStore.handleKeyUp);
@@ -173,9 +182,6 @@ const blackKeys = ['e', 'r', 'y', 'u', 'i'];
 
 // 记录鼠标按下的键
 const mouseActiveKey = ref<string | null>(null);
-
-// 检测是否为移动设备
-const isMobileDevice = ref(false);
 
 // 获取和弦映射
 const chordMapping = computed(() => chordStore.KEY_TO_CHORD);
@@ -297,11 +303,78 @@ function handleTouchEnd() {
   handleMouseUp();
 }
 
-// 修饰键状态切换
-function toggleModifier(modifier: 'shift' | 'ctrl' | 'alt') {
-  if (isMobileDevice.value) {
-    const newModifiers = { ...chordStore.modifiers };
-    newModifiers[modifier] = !newModifiers[modifier];
+// 直接设置和弦类型（通过设置对应的修饰键组合）
+function setChordType(type: string) {
+  const newModifiers = { shift: false, ctrl: false, alt: false };
+  
+  // 根据选择的类型设置对应的修饰键组合
+  switch(type) {
+    case 'shift': // 大/小
+      newModifiers.shift = true;
+      break;
+    case 'ctrl': // sus4
+      newModifiers.ctrl = true;
+      break;
+    case 'alt': // sus2
+      newModifiers.alt = true;
+      // 特殊处理Alt键，防止浏览器默认行为
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Alt') {
+          e.preventDefault();
+        }
+      }, { once: true });
+      break;
+    case '7': // 属七
+      newModifiers.shift = true;
+      newModifiers.ctrl = true;
+      break;
+    case 'maj7': // 大七
+      newModifiers.shift = true;
+      newModifiers.alt = true;
+      // 特殊处理Alt键
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Alt') {
+          e.preventDefault();
+        }
+      }, { once: true });
+      break;
+    case 'm7': // 小七
+      newModifiers.ctrl = true;
+      newModifiers.alt = true;
+      // 特殊处理Alt键
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Alt') {
+          e.preventDefault();
+        }
+      }, { once: true });
+      break;
+    case 'dim': // 减
+      newModifiers.shift = true;
+      newModifiers.ctrl = true;
+      newModifiers.alt = true;
+      // 特殊处理Alt键
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Alt') {
+          e.preventDefault();
+        }
+      }, { once: true });
+      break;
+    default:
+      // 如果没有指定类型，则清除所有修饰键
+      break;
+  }
+  
+  // 如果当前修饰键状态与要设置的完全相同，则清除所有修饰键
+  // 这样可以通过再次点击同一个按钮来取消选择
+  if (newModifiers.shift === modifiers.value.shift &&
+      newModifiers.ctrl === modifiers.value.ctrl &&
+      newModifiers.alt === modifiers.value.alt) {
+    newModifiers.shift = false;
+    newModifiers.ctrl = false;
+    newModifiers.alt = false;
+  }
+  
+  // 更新修饰键状态
     chordStore.setModifiers(newModifiers);
     
     // 如果当前有按键被按下，更新和弦
@@ -310,7 +383,6 @@ function toggleModifier(modifier: 'shift' | 'ctrl' | 'alt') {
       if (mapping) {
         const chord = chordStore.applyModifiers(mapping);
         chordStore.playChord(chord);
-      }
     }
   }
 }
@@ -348,6 +420,19 @@ function getChordTypeSuffix(type: ChordType): string {
     case ChordType.HALF_DIMINISHED_SEVENTH: return 'm7b5';
     default: return '';
   }
+}
+
+// 获取黑键位置
+function getBlackKeyPosition(key: string): Record<string, string> {
+  const positions: Record<string, string> = {
+    'e': 'left: 10.7%;',
+    'r': 'left: 25%;',
+    'y': 'left: 53.6%;',
+    'u': 'left: 67.9%;',
+    'i': 'left: 82.2%;'
+  };
+  
+  return { left: positions[key]?.split(':')?.[1] || '0%' };
 }
 </script>
 
@@ -488,25 +573,30 @@ function getChordTypeSuffix(type: ChordType): string {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 20px;
+  gap: 10px;
   margin-bottom: 15px;
   padding: 10px;
   background-color: #f5f5f5;
   border-radius: 8px;
+  flex-wrap: wrap;
 }
 
-.modifier-status span {
-  padding: 5px 15px;
+.modifier-status button {
+  padding: 5px 10px;
   border-radius: 4px;
   background-color: #e0e0e0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: bold;
   color: #555;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 40px;
+  text-align: center;
+  border: none;
+  outline: none;
 }
 
-.modifier-status span.active {
+.modifier-status button.active {
   background-color: var(--color-primary);
   color: white;
 }
@@ -577,7 +667,7 @@ function getChordTypeSuffix(type: ChordType): string {
     padding: 8px;
   }
 
-  .modifier-status span {
+  .modifier-status button {
     padding: 4px 10px;
     font-size: 0.8rem;
   }
@@ -625,7 +715,7 @@ function getChordTypeSuffix(type: ChordType): string {
     margin-bottom: 8px;
   }
 
-  .modifier-status span {
+  .modifier-status button {
     padding: 3px 8px;
     font-size: 0.75rem;
   }

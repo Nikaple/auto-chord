@@ -38,14 +38,42 @@ const HIGH_OCTAVE_KEYS: string[] = [];
 // 持续播放的间隔时间（毫秒）
 const SUSTAIN_INTERVAL = 1000;
 
+// 检测设备类型
+const detectDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
+  // 检测触摸设备
+  const hasTouchScreen = navigator.maxTouchPoints > 0 || 
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  // 检测屏幕尺寸
+  const width = window.innerWidth;
+  
+  if (hasTouchScreen) {
+    if (width < 768) {
+      return 'mobile';
+    } else {
+      return 'tablet';
+    }
+  }
+  
+  return 'desktop';
+};
+
 export function useKeyboardHandler() {
   const chordStore = useChordStore();
+  
+  // 设备类型检测
+  const deviceType = ref<'mobile' | 'tablet' | 'desktop'>('desktop');
   
   // 存储每个键的持续播放定时器
   const sustainTimers = reactive(new Map<string, number>());
   
   // 处理键盘按下事件
   function handleKeyDown(event: KeyboardEvent) {
+    // 阻止Alt键的默认行为
+    if (event.key === 'Alt' || event.altKey) {
+      event.preventDefault();
+    }
+    
     // 更新修饰符状态
     chordStore.setModifiers({
       shift: event.shiftKey,
@@ -79,6 +107,11 @@ export function useKeyboardHandler() {
   
   // 处理键盘松开事件
   function handleKeyUp(event: KeyboardEvent) {
+    // 阻止Alt键的默认行为
+    if (event.key === 'Alt') {
+      event.preventDefault();
+    }
+    
     // 更新修饰符状态
     chordStore.setModifiers({
       shift: event.shiftKey,
@@ -88,35 +121,23 @@ export function useKeyboardHandler() {
     
     const key = event.key.toLowerCase();
     
-    // 如果释放的是和弦按键（而不是修饰键），则停止声音
+    // 移除按键状态
+    chordStore.pressedKeys.delete(key);
+    
+    // 如果是和弦键
     if (KEY_TO_CHORD[key]) {
-      // 从pressedKeys中移除当前释放的键
-      chordStore.pressedKeys.delete(key);
-      
-      // 立即停止当前声音
-      chordStore.stopChord();
-      
-      // 检查是否还有其他和弦按键被按下
+      // 检查是否还有其他键被按下
       const remainingChordKeys = Array.from(chordStore.pressedKeys).filter(k => KEY_TO_CHORD[k]);
       
       if (remainingChordKeys.length > 0) {
-        // 如果还有其他和弦按键，播放最近按下的那个
-        const latestKey = remainingChordKeys[remainingChordKeys.length - 1];
-        const baseChord = KEY_TO_CHORD[latestKey];
+        // 播放最后一个按下的和弦
+        const lastKey = remainingChordKeys[remainingChordKeys.length - 1];
+        const baseChord = KEY_TO_CHORD[lastKey];
         const modifiedChord = chordStore.applyModifiers(baseChord);
         chordStore.playChord(modifiedChord);
-      }
-    } else {
-      // 如果释放的是修饰键，且有和弦按键被按下，更新和弦
-      const chordKeys = Array.from(chordStore.pressedKeys).filter(k => KEY_TO_CHORD[k]);
-      if (chordKeys.length > 0) {
-        // 先停止所有声音
+      } else {
+        // 停止和弦
         chordStore.stopChord();
-        
-        const activeKey = chordKeys[chordKeys.length - 1];
-        const baseChord = KEY_TO_CHORD[activeKey];
-        const modifiedChord = chordStore.applyModifiers(baseChord);
-        chordStore.playChord(modifiedChord);
       }
     }
   }
@@ -170,11 +191,25 @@ export function useKeyboardHandler() {
     chordStore.playChord(chord);
   }
   
-  // 生命周期钩子
+  // 初始化设备类型检测
   onMounted(() => {
+    deviceType.value = detectDeviceType();
+    
+    // 窗口大小变化时重新检测设备类型
+    window.addEventListener('resize', () => {
+      deviceType.value = detectDeviceType();
+    });
+    
     // 添加事件监听器
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    
+    // 专门处理Alt键的事件
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Alt' || e.altKey) {
+        e.preventDefault();
+      }
+    }, true);
     
     // 页面失去焦点时停止所有声音
     window.addEventListener('blur', () => {
@@ -182,7 +217,12 @@ export function useKeyboardHandler() {
     });
   });
   
+  // 清理事件监听器
   onUnmounted(() => {
+    window.removeEventListener('resize', () => {
+      deviceType.value = detectDeviceType();
+    });
+    
     // 移除事件监听器
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
@@ -199,6 +239,8 @@ export function useKeyboardHandler() {
     chordMapping: KEY_TO_CHORD,
     pressedKeys: computed(() => chordStore.pressedKeys),
     activeKeys: computed(() => Array.from(chordStore.pressedKeys)),
+    deviceType: computed(() => deviceType.value),
+    isMobileDevice: computed(() => deviceType.value !== 'desktop'),
     handleKeyDown,
     handleKeyUp
   };

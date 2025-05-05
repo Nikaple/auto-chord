@@ -14,15 +14,19 @@
       
       <div class="chord-type">
         <span>类型：</span>
-        <span>{{ getShortChordTypeLabel(currentChord.type) }}</span>
+        <span class="chord-type-label">{{ getShortChordTypeLabel(currentChord.type) }}</span>
       </div>
       
-      <div class="modifiers">
-        <span>修饰：</span>
-        <div class="modifier-buttons">
-          <span class="modifier" :class="{ active: modifiers.shift }">↑</span>
-          <span class="modifier" :class="{ active: modifiers.ctrl }">⌃</span>
-          <span class="modifier" :class="{ active: modifiers.alt }">⌥</span>
+      <div class="chord-qualities">
+        <span>和弦性质：</span>
+        <div class="quality-buttons">
+          <span class="quality" :class="{ active: (isTypeActive('MAJOR') || isTypeActive('MINOR')) && !isTypeActive('DOMINANT_SEVENTH') && !isTypeActive('MAJOR_SEVENTH') && !isTypeActive('MINOR_SEVENTH') && !isTypeActive('SUSPENDED_FOURTH') && !isTypeActive('SUSPENDED_SECOND') && !isTypeActive('DIMINISHED') }">大/小</span>
+          <span class="quality" :class="{ active: isTypeActive('SUSPENDED_FOURTH') && !isTypeActive('DOMINANT_SEVENTH') && !isTypeActive('MAJOR_SEVENTH') && !isTypeActive('MINOR_SEVENTH') && !isTypeActive('DIMINISHED') }">sus4</span>
+          <span class="quality" :class="{ active: isTypeActive('SUSPENDED_SECOND') && !isTypeActive('DOMINANT_SEVENTH') && !isTypeActive('MAJOR_SEVENTH') && !isTypeActive('MINOR_SEVENTH') && !isTypeActive('DIMINISHED') }">sus2</span>
+          <span class="quality" :class="{ active: isTypeActive('DOMINANT_SEVENTH') }">7</span>
+          <span class="quality" :class="{ active: isTypeActive('MAJOR_SEVENTH') }">maj7</span>
+          <span class="quality" :class="{ active: isTypeActive('MINOR_SEVENTH') }">m7</span>
+          <span class="quality" :class="{ active: isTypeActive('DIMINISHED') && !isTypeActive('HALF_DIMINISHED_SEVENTH') }">减</span>
         </div>
       </div>
     </div>
@@ -57,6 +61,12 @@ function getShortChordName(chord: Chord): string {
 function getShortNoteName(note: string): string {
   return note.replace('sharp', '#')
             .replace('flat', 'b');
+}
+
+// 检查指定的和弦类型是否激活
+function isTypeActive(typeName: string): boolean {
+  if (!currentChord.value) return false;
+  return currentChord.value.type === ChordType[typeName as keyof typeof ChordType];
 }
 
 // 获取简短的和弦类型标签
@@ -125,27 +135,41 @@ h2 {
   font-weight: bold;
 }
 
-.chord-type, .modifiers {
+.chord-type, .chord-qualities {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.modifier-buttons {
+.chord-type-label {
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.chord-qualities {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.modifier {
+.quality-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quality {
   display: inline-block;
   padding: 0.3rem 0.6rem;
   background-color: #eee;
   border-radius: 4px;
   font-size: 0.9rem;
   opacity: 0.6;
+  min-width: 45px;
+  text-align: center;
 }
 
-.modifier.active {
+.quality.active {
   background-color: var(--color-primary);
   color: white;
   opacity: 1;
@@ -184,15 +208,15 @@ h2 {
     font-size: 0.8rem;
   }
   
-  .modifier-buttons {
+  .quality-buttons {
     gap: 0.3rem;
   }
   
-  .modifier {
-    font-size: 1rem;
+  .quality {
+    font-size: 0.9rem;
     padding: 0.3rem 0.5rem;
     min-width: 40px;
-    min-height: 40px;
+    min-height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;

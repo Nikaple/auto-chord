@@ -42,8 +42,30 @@
     gap: var(--spacing-xs) !important; /* 增加按钮间距，防止误触 */
   }
   
-  .modifier-status span {
+  /* 和弦性质展示优化 */
+  .modifier-status {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: var(--spacing-xs) !important;
+  }
+  
+  .modifier-status button {
     padding: var(--spacing-xs) var(--spacing-sm) !important;
+    min-width: 50px !important;
+    min-height: 36px !important;
+    font-size: var(--font-size-sm) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important; /* 移除移动端点击高亮 */
+  }
+  
+  .chord-info {
+    width: 100% !important;
+    text-align: center !important;
+    margin-top: var(--spacing-xs) !important;
   }
 }
 
@@ -66,9 +88,21 @@
     font-size: var(--font-size-sm) !important;
   }
   
-  .modifier {
+  /* 和弦性质按钮优化 */
+  .quality-buttons {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: var(--spacing-xs) !important;
+  }
+  
+  .quality {
     padding: var(--spacing-xxs) var(--spacing-xs) !important;
     font-size: var(--font-size-sm) !important;
+    min-width: 50px !important;
+    min-height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 }
 
@@ -102,7 +136,7 @@
     gap: var(--spacing-sm) !important;
   }
   
-  .chord-type, .modifiers {
+  .chord-type, .chord-qualities {
     font-size: var(--font-size-sm) !important;
   }
 } 
