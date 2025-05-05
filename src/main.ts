@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+import * as FastClick from 'fastclick'
 
 // 导入 FontAwesome 图标库
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -23,5 +24,13 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.component('font-awesome-icon', FontAwesomeIcon)
+
+// 初始化 FastClick
+if ('addEventListener' in document) {
+  document.addEventListener('DOMContentLoaded', function() {
+    // @ts-ignore
+    FastClick.attach(document.body)
+  }, false)
+}
 
 app.mount('#app') 
