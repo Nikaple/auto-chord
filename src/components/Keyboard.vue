@@ -3,30 +3,51 @@
     <div class="piano-layout">
       <!-- 修饰键状态显示 -->
       <div class="modifier-status">
-        <span :class="{ active: shift }">Shift</span>
-        <span :class="{ active: ctrl }">Ctrl</span>
-        <span :class="{ active: alt }">Alt</span>
+        <span :class="{ active: shift }" @click="toggleModifier('shift')">Shift</span>
+        <span :class="{ active: ctrl }" @click="toggleModifier('ctrl')">Ctrl</span>
+        <span :class="{ active: alt }" @click="toggleModifier('alt')">Alt</span>
         <div class="chord-info">
           <strong>{{ currentChord ? currentChord.name : '无' }}</strong>
         </div>
       </div>
       
-      <!-- 标准钢琴键盘（第一、二排） -->
+      <!-- 标准钢琴键盘 -->
       <div class="keyboard">
-        <div 
-          v-for="key in pianoKeys" 
-          :key="key"
-          class="key" 
-          :class="{ 
-            'black-key': isBlackKey(chordMapping[key]?.root), 
-            'white-key': !isBlackKey(chordMapping[key]?.root),
-            'active': isKeyActive(key)
-          }"
-          @mousedown="handleMouseDown(key, chordMapping[key])"
-          @mouseup="handleMouseUp()"
-          @mouseleave="handleMouseUp()">
-          <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
-          <span class="key-label">{{ key.toUpperCase() }}</span>
+        <!-- 白键 -->
+        <div class="white-keys">
+          <div 
+            v-for="key in whiteKeys" 
+            :key="key"
+            class="key white-key" 
+            :class="{ 'active': isKeyActive(key) }"
+            @mousedown="handleMouseDown(key, chordMapping[key])"
+            @mouseup="handleMouseUp()"
+            @mouseleave="handleMouseUp()"
+            @touchstart.prevent="handleTouchStart(key, chordMapping[key])"
+            @touchend.prevent="handleTouchEnd()"
+            @touchcancel.prevent="handleTouchEnd()">
+            <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+            <span class="key-label">{{ key.toUpperCase() }}</span>
+          </div>
+        </div>
+        
+        <!-- 黑键 -->
+        <div class="black-keys">
+          <div 
+            v-for="key in blackKeys" 
+            :key="key"
+            class="key black-key" 
+            :class="{ 'active': isKeyActive(key) }"
+            :data-note="getNoteFromKey(key)"
+            @mousedown="handleMouseDown(key, chordMapping[key])"
+            @mouseup="handleMouseUp()"
+            @mouseleave="handleMouseUp()"
+            @touchstart.prevent="handleTouchStart(key, chordMapping[key])"
+            @touchend.prevent="handleTouchEnd()"
+            @touchcancel.prevent="handleTouchEnd()">
+            <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
+            <span class="key-label">{{ key.toUpperCase() }}</span>
+          </div>
         </div>
       </div>
       
@@ -39,14 +60,17 @@
           :class="{ 'active': isKeyActive(key) }"
           @mousedown="handleMouseDown(key, chordMapping[key])"
           @mouseup="handleMouseUp()"
-          @mouseleave="handleMouseUp()">
+          @mouseleave="handleMouseUp()"
+          @touchstart.prevent="handleTouchStart(key, chordMapping[key])"
+          @touchend.prevent="handleTouchEnd()"
+          @touchcancel.prevent="handleTouchEnd()">
           <span class="note-name">{{ getChordLabel(chordMapping[key]) }}</span>
           <span class="key-label">{{ key.toUpperCase() }}</span>
         </div>
       </div>
     </div>
     
-    <div class="keyboard-help">
+    <div class="keyboard-help" v-if="!isMobileDevice">
       <p>按住键盘上相应的字母键播放和弦。</p>
       
       <p>第二排键位 (S-K) 映射到C大调的基础和弦：</p>
@@ -97,9 +121,18 @@
 import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { Chord, ChordType } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
+import * as Tone from 'tone';
 
 // 使用键盘处理器
-const { currentChord, chordMapping, activeKeys, audioSystem, modifiers } = useKeyboardHandler();
+const { 
+  currentChord, 
+  chordMapping, 
+  activeKeys, 
+  audioSystem, 
+  modifiers,
+  handleKeyDown,
+  handleKeyUp 
+} = useKeyboardHandler();
 
 // 当前修饰键状态的计算属性，使其在模板中可响应
 const shift = computed(() => modifiers.value.shift);
@@ -120,23 +153,52 @@ function preventDefaultKeys(e: KeyboardEvent) {
 
 // 挂载和卸载全局事件监听器
 onMounted(() => {
+  // 等待用户第一次交互后再初始化音频系统
+  const initAudio = () => {
+    Tone.start();  // 使用 Tone.start() 替代 audioSystem.init()
+    window.removeEventListener('click', initAudio);
+    window.removeEventListener('keydown', initAudio);
+    window.removeEventListener('touchstart', initAudio);
+  };
+
+  window.addEventListener('click', initAudio);
+  window.addEventListener('keydown', initAudio);
+  window.addEventListener('touchstart', initAudio);
+
   window.addEventListener('keydown', preventDefaultKeys, true);
+  
+  // 检测是否为移动设备
+  isMobileDevice.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  // 添加事件监听器
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
+  
+  // 页面失去焦点时停止所有声音
+  window.addEventListener('blur', () => {
+    currentChord.value = null;
+    audioSystem.stopAll();
+  });
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', preventDefaultKeys, true);
+  window.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('keyup', handleKeyUp);
 });
 
 // 第三排七和弦按键
 const thirdRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
 
-// 钢琴键盘布局 - 第一、二排（已向右移动一位）
-const pianoKeys = [
-  's', 'e', 'd', 'r', 'f', 'g', 'y', 'h', 'u', 'j', 'i', 'k'
-];
+// 分离白键和黑键
+const whiteKeys = ['s', 'd', 'f', 'g', 'h', 'j', 'k'];
+const blackKeys = ['e', 'r', 'y', 'u', 'i'];
 
 // 记录鼠标按下的键
 const mouseActiveKey = ref<string | null>(null);
+
+// 检测是否为移动设备
+const isMobileDevice = ref(false);
 
 // 获取和弦后缀显示
 function getChordSuffix(type: ChordType): string {
@@ -227,8 +289,24 @@ function handleMouseDown(key: string, mapping: { root: string, type: ChordType }
   // 设置当前激活的按键
   mouseActiveKey.value = key;
   
+  // 应用修饰符创建最终和弦
+  const modifiedChord = new Chord(
+    mapping.root,
+    4, // 默认八度
+    modifiers.value.shift && modifiers.value.ctrl ? ChordType.DOMINANT_SEVENTH :
+    modifiers.value.shift && modifiers.value.alt ? ChordType.MAJOR_SEVENTH :
+    modifiers.value.ctrl && modifiers.value.alt ? ChordType.MINOR_SEVENTH :
+    modifiers.value.shift ? (mapping.type === ChordType.MAJOR ? ChordType.MINOR : ChordType.MAJOR) :
+    modifiers.value.ctrl ? ChordType.SUSPENDED_FOURTH :
+    modifiers.value.alt ? ChordType.SUSPENDED_SECOND :
+    mapping.type
+  );
+  
+  // 更新当前和弦状态
+  currentChord.value = modifiedChord;
+  
   // 播放对应的和弦
-  playChord(mapping);
+  audioSystem.playChord(modifiedChord);
 }
 
 // 鼠标抬起处理函数
@@ -238,18 +316,48 @@ function handleMouseUp() {
   
   // 清除鼠标激活的按键
   mouseActiveKey.value = null;
+  
+  // 清除当前和弦状态
+  currentChord.value = null;
 }
 
-// 使用鼠标点击播放和弦
-function playChord(mapping: { root: string, type: ChordType } | undefined) {
-  if (!mapping) return;
-  
-  // 映射到对应的和弦
-  const octave = 4; // 默认八度
-  const newChord = new Chord(mapping.root, octave, mapping.type);
-  
-  // 使用音频系统播放和弦
-  audioSystem.playChord(newChord);
+// 修饰键状态切换
+function toggleModifier(modifier: 'shift' | 'ctrl' | 'alt') {
+  if (isMobileDevice.value) {
+    modifiers.value[modifier] = !modifiers.value[modifier];
+    
+    // 如果当前有按键被按下，更新和弦
+    if (mouseActiveKey.value) {
+      const key = mouseActiveKey.value;
+      const mapping = chordMapping[key];
+      if (mapping) {
+        const modifiedChord = applyModifiers(mapping);
+        currentChord.value = modifiedChord;
+        audioSystem.playChord(modifiedChord);
+      }
+    }
+  }
+}
+
+// 触摸事件处理
+function handleTouchStart(key: string, mapping: { root: string, type: ChordType } | undefined) {
+  handleMouseDown(key, mapping);
+}
+
+function handleTouchEnd() {
+  handleMouseUp();
+}
+
+// 获取音符名称
+function getNoteFromKey(key: string): string {
+  const noteMap: Record<string, string> = {
+    'e': 'C#',
+    'r': 'D#',
+    'y': 'F#',
+    'u': 'G#',
+    'i': 'A#'
+  };
+  return noteMap[key] || '';
 }
 </script>
 
@@ -270,22 +378,33 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
 
 .keyboard {
   display: flex;
-  justify-content: center;
   position: relative;
   height: 180px;
   width: 100%;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  background: #f5f5f5;
 }
 
-/* 第三排七和弦键盘 */
-.keyboard-row {
+/* 白键容器 */
+.white-keys {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* 黑键容器 */
+.black-keys {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  pointer-events: none;
   display: flex;
   justify-content: center;
-  gap: 5px;
-  width: 100%;
-  margin-top: 15px;
 }
 
 .key {
@@ -297,25 +416,62 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
   padding-bottom: 1rem;
   cursor: pointer;
   transition: all 0.1s ease;
-  border-radius: 0 0 4px 4px;
+  box-sizing: border-box;
 }
 
 .white-key {
+  flex: 1;
   background-color: white;
-  border: 1px solid #ddd;
-  width: calc(100% / 10);
+  border-right: 1px solid #ddd;
   height: 100%;
   z-index: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.white-key:last-child {
+  border-right: none;
 }
 
 .black-key {
   background-color: #333;
-  width: calc((100% / 10) * 0.7);
-  height: 60%;
-  margin-left: calc((100% / 10) * -0.35);
-  margin-right: calc((100% / 10) * -0.35);
+  width: 70%;
+  height: 100%;
   z-index: 2;
   color: white;
+  border: 1px solid #000;
+  border-radius: 0 0 4px 4px;
+  pointer-events: auto;
+  position: absolute;
+}
+
+/* 设置每个黑键的位置 */
+.black-key[data-note="C#"] { left: 12%; }
+.black-key[data-note="D#"] { left: 26%; }
+.black-key[data-note="F#"] { left: 55%; }
+.black-key[data-note="G#"] { left: 69%; }
+.black-key[data-note="A#"] { left: 83%; }
+
+.note-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+  z-index: 3;
+}
+
+.key-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  z-index: 3;
+}
+
+/* 第三排七和弦键盘 */
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  margin-top: 15px;
 }
 
 .seventh-key {
@@ -326,22 +482,48 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
   height: 80px;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.note-name {
-  font-weight: bold;
-  font-size: 0.9rem;
-  margin-bottom: 0.3rem;
-}
-
-.key-label {
-  font-size: 0.8rem;
-  opacity: 0.8;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 1rem;
 }
 
 .active {
   background-color: var(--color-primary);
   color: white;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .keyboard {
+    height: var(--key-height-mobile);
+  }
+
+  .note-name {
+    font-size: 0.7rem;
+  }
+
+  .key-label {
+    font-size: 0.6rem;
+  }
+
+  .black-key {
+    width: 60%;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .key {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .key:active {
+    transform: translateY(1px);
+  }
 }
 
 .keyboard-help {

@@ -8,7 +8,10 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSliders, faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons'
 
-import './assets/main.css'
+// 导入样式
+import './styles/main.css'
+import './styles/responsive.css'
+import './styles/mobile.css'
 
 // 添加图标到库中
 library.add(faSliders, faVolumeHigh, faVolumeLow, faVolumeXmark)

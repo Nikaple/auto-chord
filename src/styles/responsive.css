@@ -1,0 +1,196 @@
+/* 响应式设计断点 */
+:root {
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  --breakpoint-desktop: 1200px;
+  
+  /* 基础尺寸 */
+  --base-spacing: 1rem;
+  --base-radius: 8px;
+  
+  /* 钢琴键盘尺寸 */
+  --key-width-desktop: 60px;
+  --key-height-desktop: 180px;
+  --key-width-tablet: 50px;
+  --key-height-tablet: 160px;
+  --key-width-mobile: 40px;
+  --key-height-mobile: 140px;
+  
+  /* 和弦按钮尺寸 */
+  --chord-button-size-desktop: 60px;
+  --chord-button-size-tablet: 50px;
+  --chord-button-size-mobile: 45px;
+}
+
+/* 响应式布局容器 */
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--base-spacing);
+}
+
+/* 桌面端样式 */
+@media (min-width: 1024px) {
+  .container {
+    max-width: var(--breakpoint-desktop);
+  }
+  
+  .keyboard {
+    height: var(--key-height-desktop);
+  }
+  
+  .white-key {
+    width: var(--key-width-desktop);
+  }
+  
+  .black-key {
+    width: calc(var(--key-width-desktop) * 0.7);
+  }
+}
+
+/* 平板端样式 */
+@media (max-width: 1023px) {
+  .container {
+    max-width: var(--breakpoint-tablet);
+  }
+  
+  .keyboard {
+    height: var(--key-height-tablet);
+  }
+  
+  .white-key {
+    width: var(--key-width-tablet);
+  }
+  
+  .black-key {
+    width: calc(var(--key-width-tablet) * 0.7);
+  }
+  
+  .chord-button {
+    width: var(--chord-button-size-tablet);
+    height: var(--chord-button-size-tablet);
+  }
+}
+
+/* 移动端样式 */
+@media (max-width: 767px) {
+  .container {
+    max-width: 100%;
+    padding: calc(var(--base-spacing) / 2);
+  }
+  
+  .keyboard {
+    height: var(--key-height-mobile);
+  }
+  
+  .white-key {
+    width: var(--key-width-mobile);
+  }
+  
+  .black-key {
+    width: calc(var(--key-width-mobile) * 0.7);
+  }
+  
+  .chord-button {
+    width: var(--chord-button-size-mobile);
+    height: var(--chord-button-size-mobile);
+  }
+  
+  /* 标题缩小 */
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  /* 间距调整 */
+  .spacing-responsive {
+    margin: calc(var(--base-spacing) / 2);
+    padding: calc(var(--base-spacing) / 2);
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    padding: calc(var(--base-spacing) / 2);
+  }
+  
+  .touch-spacing {
+    gap: calc(var(--base-spacing) / 2);
+  }
+  
+  /* 增大点击区域 */
+  button, 
+  .key,
+  .chord-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 禁用悬停效果 */
+  .hover-effect {
+    display: none;
+  }
+}
+
+/* 横屏模式优化 */
+@media (orientation: landscape) and (max-height: 600px) {
+  .keyboard {
+    height: 120px;
+  }
+  
+  .white-key {
+    width: 35px;
+  }
+  
+  .black-key {
+    width: 24px;
+  }
+  
+  .chord-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  /* 紧凑布局 */
+  .compact-layout {
+    margin: 0.5rem 0;
+  }
+}
+
+/* 高分辨率屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* 优化字体渲染 */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* 使用更清晰的边框 */
+  .border-sharp {
+    border-width: 0.5px;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #1a1a1a;
+    --color-text: #ffffff;
+    --color-border: #333333;
+  }
+  
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+  }
+  
+  .border-dark {
+    border-color: var(--color-border);
+  }
+} 

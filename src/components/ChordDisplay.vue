@@ -3,58 +3,75 @@
     <h2>当前和弦</h2>
     
     <div v-if="currentChord" class="chord-info">
-      <div class="chord-name">{{ currentChord.name }}</div>
+      <div class="chord-name">{{ getShortChordName(currentChord) }}</div>
       
       <div class="chord-notes">
-        <span>包含的音符：</span>
+        <span>音符：</span>
         <span class="note" v-for="(note, index) in currentChord.noteNames" :key="index">
-          {{ note }}
+          {{ getShortNoteName(note) }}
         </span>
       </div>
       
       <div class="chord-type">
-        <span>和弦类型：</span>
-        <span>{{ getChordTypeLabel(currentChord.type) }}</span>
+        <span>类型：</span>
+        <span>{{ getShortChordTypeLabel(currentChord.type) }}</span>
       </div>
       
       <div class="modifiers">
-        <span>当前修饰键：</span>
+        <span>修饰：</span>
         <div class="modifier-buttons">
-          <span class="modifier" :class="{ active: modifiers.shift }">Shift</span>
-          <span class="modifier" :class="{ active: modifiers.ctrl }">Ctrl</span>
-          <span class="modifier" :class="{ active: modifiers.alt }">Alt</span>
+          <span class="modifier" :class="{ active: modifiers.shift }">↑</span>
+          <span class="modifier" :class="{ active: modifiers.ctrl }">⌃</span>
+          <span class="modifier" :class="{ active: modifiers.alt }">⌥</span>
         </div>
       </div>
     </div>
     
     <div v-else class="no-chord">
-      <p>按下键盘上的按键播放和弦</p>
+      <p>点击或按键播放和弦</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
-import { ChordType } from '@/utils/music'
+import { ChordType, Chord } from '@/utils/music'
 
 // 使用键盘处理器
 const { currentChord, modifiers } = useKeyboardHandler();
 
-// 获取和弦类型的中文标签
-function getChordTypeLabel(type: ChordType): string {
+// 获取简短的和弦名称
+function getShortChordName(chord: Chord): string {
+  const name = chord.name;
+  return name.replace('major', 'maj')
+            .replace('minor', 'm')
+            .replace('diminished', 'dim')
+            .replace('augmented', 'aug')
+            .replace('seventh', '7');
+}
+
+// 获取简短的音符名称
+function getShortNoteName(note: string): string {
+  return note.replace('sharp', '#')
+            .replace('flat', 'b');
+}
+
+// 获取简短的和弦类型标签
+function getShortChordTypeLabel(type: ChordType): string {
   const typeLabels: Record<string, string> = {
-    'major': '大三和弦',
-    'minor': '小三和弦',
-    'diminished': '减三和弦',
-    'augmented': '增三和弦',
-    'sus2': '挂二和弦',
-    'sus4': '挂四和弦',
-    '7': '属七和弦',
-    'maj7': '大七和弦',
-    'min7': '小七和弦',
-    '6': '大六和弦',
-    'min6': '小六和弦',
-    '9': '九和弦'
+    'major': '大三',
+    'minor': '小三',
+    'diminished': '减三',
+    'augmented': '增三',
+    'sus2': 'sus2',
+    'sus4': 'sus4',
+    '7': '属七',
+    'maj7': '大七',
+    'min7': '小七',
+    '6': '大六',
+    'min6': '小六',
+    '9': '九',
+    'm7b5': '半减七'
   };
   
   return typeLabels[type] || type;
@@ -140,5 +157,48 @@ h2 {
   font-style: italic;
   background-color: #f9f9f9;
   border-radius: 4px;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .chord-display {
+    max-width: 100%;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  .chord-info {
+    gap: 0.8rem;
+  }
+  
+  .chord-name {
+    font-size: 1.8rem;
+  }
+  
+  .note {
+    font-size: 0.8rem;
+  }
+  
+  .modifier-buttons {
+    gap: 0.3rem;
+  }
+  
+  .modifier {
+    font-size: 1rem;
+    padding: 0.3rem 0.5rem;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .modifier {
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 </style> 

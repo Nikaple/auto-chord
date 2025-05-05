@@ -1,0 +1,117 @@
+/* 移动端优化样式 */
+
+/* 钢琴键盘移动端优化 */
+@media (max-width: 768px) {
+  .keyboard {
+    height: var(--key-height-mobile) !important;
+  }
+  
+  .white-key {
+    width: var(--key-width-mobile) !important;
+  }
+  
+  .black-key {
+    width: calc(var(--key-width-mobile) * 0.7) !important;
+    height: 60% !important;
+    margin-left: calc(var(--key-width-mobile) * -0.35) !important;
+    margin-right: calc(var(--key-width-mobile) * -0.35) !important;
+  }
+  
+  .note-name {
+    font-size: 0.7rem !important;
+  }
+  
+  .key-label {
+    font-size: 0.6rem !important;
+  }
+  
+  .seventh-key {
+    height: 60px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* 和弦显示优化 */
+@media (max-width: 768px) {
+  .chord-display {
+    padding: 1rem !important;
+  }
+  
+  .chord-name {
+    font-size: 2rem !important;
+  }
+  
+  .chord-notes {
+    flex-wrap: wrap !important;
+  }
+  
+  .note {
+    padding: 0.15rem 0.4rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .modifier {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* 触摸优化 */
+@media (hover: none) and (pointer: coarse) {
+  .key {
+    touch-action: none; /* 防止触摸滚动 */
+  }
+  
+  .white-key, .black-key, .seventh-key {
+    min-height: 44px; /* 确保触摸目标足够大 */
+  }
+  
+  .modifier-status span {
+    padding: 8px 16px !important;
+  }
+  
+  /* 增加按钮间距，防止误触 */
+  .keyboard-row {
+    gap: 8px !important;
+  }
+  
+  /* 优化触摸反馈 */
+  .key:active {
+    transform: translateY(2px);
+  }
+}
+
+/* 布局优化 */
+@media (max-width: 768px) {
+  .main-layout {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  
+  .right-section {
+    width: 100% !important;
+  }
+  
+  .panel {
+    width: 100% !important;
+  }
+  
+  .keyboard-help {
+    font-size: 0.9rem !important;
+  }
+  
+  .chord-map {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+  }
+}
+
+/* 和弦标注优化 */
+@media (max-width: 768px) {
+  .chord-info {
+    gap: 0.8rem !important;
+  }
+  
+  .chord-type, .modifiers {
+    font-size: 0.9rem !important;
+  }
+} 
