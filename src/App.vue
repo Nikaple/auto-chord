@@ -13,6 +13,13 @@
   </main>
 </template>
 
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useKeyboardHandler } from '@/composables/useKeyboardHandler';
+
+const { audioSystem } = useKeyboardHandler();
+</script>
+
 <style>
 header {
   background-color: var(--color-dark);

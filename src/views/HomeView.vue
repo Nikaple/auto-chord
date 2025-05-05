@@ -3,13 +3,17 @@
     <h1>自动和弦</h1>
     <p class="subtitle">使用键盘演奏和弦，探索音乐的世界</p>
     
-    <div class="piano-container">
-      <Keyboard />
-    </div>
-    
-    <div class="controls">
-      <ChordDisplay />
-      <SoundSettings />
+    <div class="main-layout">
+      <div class="left-section">
+        <div class="piano-container">
+          <Keyboard />
+        </div>
+      </div>
+      
+      <div class="right-section">
+        <ChordDisplay class="panel" />
+        <SoundSettings class="panel" />
+      </div>
     </div>
   </div>
 </template>
@@ -27,15 +31,48 @@ import SoundSettings from '@/components/SoundSettings.vue'
   margin-bottom: 2rem;
 }
 
-.piano-container {
-  width: 100%;
-  margin: 2rem 0;
-}
-
-.controls {
+.main-layout {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
   gap: 2rem;
   margin-top: 2rem;
+}
+
+.left-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.right-section {
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.piano-container {
+  width: 100%;
+}
+
+.panel {
+  width: 100%;
+}
+
+/* 响应式布局 */
+@media (max-width: 992px) {
+  .main-layout {
+    flex-direction: column;
+  }
+  
+  .right-section {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .panel {
+    flex: 1;
+    min-width: 320px;
+  }
 }
 </style> 

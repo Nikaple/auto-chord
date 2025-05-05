@@ -10,10 +10,19 @@
     "test": "vitest",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
-  "keywords": ["music", "chord", "web", "interactive", "piano"],
+  "keywords": [
+    "music",
+    "chord",
+    "web",
+    "interactive",
+    "piano"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
     "@vitejs/plugin-vue": "^5.2.3",
     "pinia": "^3.0.2",
     "tone": "^15.1.22",
