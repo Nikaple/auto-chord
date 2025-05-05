@@ -1,6 +1,17 @@
 <template>
   <div class="keyboard-container">
     <div class="piano-layout">
+      <!-- 调性选择器 -->
+      <div class="key-selector">
+        <button class="transpose-btn" @click="handleTransposeDown">♭</button>
+        <select v-model="currentKey" @change="handleKeyChange" class="key-select">
+          <option v-for="note in ALL_NOTES" :key="note" :value="note">
+            {{ note }}
+          </option>
+        </select>
+        <button class="transpose-btn" @click="handleTransposeUp">♯</button>
+      </div>
+
       <!-- 修饰键状态显示 -->
       <div class="modifier-status">
         <button :class="{ active: modifiers.shift && !modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('shift')">M/m</button>
@@ -91,7 +102,7 @@
 
 <script setup lang="ts">
 import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
-import { Chord, ChordType } from '@/utils/music';
+import { Chord, ChordType, ALL_NOTES } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import * as Tone from 'tone';
 import { useChordStore } from '@/stores/chordStore'
@@ -99,6 +110,10 @@ import { useChordStore } from '@/stores/chordStore'
 // 使用和弦 store
 const chordStore = useChordStore()
 const currentChord = computed(() => chordStore.currentChord)
+const currentKey = computed({
+  get: () => chordStore.currentKey,
+  set: (value) => chordStore.transpose(value)
+})
 
 // 使用键盘处理器
 const { 
@@ -419,6 +434,21 @@ function getBlackKeyPosition(key: string): Record<string, string> {
   // 由于已经使用data-note属性设置位置，这里可以返回空对象
   return {};
 }
+
+// 处理调性变更
+function handleKeyChange(event: Event) {
+  const select = event.target as HTMLSelectElement
+  chordStore.transpose(select.value)
+}
+
+// 处理升降调
+function handleTransposeUp() {
+  chordStore.transposeUp()
+}
+
+function handleTransposeDown() {
+  chordStore.transposeDown()
+}
 </script>
 
 <style scoped>
@@ -726,6 +756,17 @@ function getBlackKeyPosition(key: string): Record<string, string> {
     min-width: 40px;
     font-size: 0.75rem;
   }
+
+  .key-selector {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .key-select,
+  .transpose-btn {
+    padding: 4px 8px;
+    font-size: 1rem;
+  }
 }
 
 /* 确保所有元素使用 border-box */
@@ -757,5 +798,40 @@ function getBlackKeyPosition(key: string): Record<string, string> {
   background-color: #f0f0f0;
   padding: 0.5rem;
   border-radius: 4px;
+}
+
+.key-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.key-select {
+  padding: 8px 16px;
+  font-size: 1.2rem;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.transpose-btn {
+  padding: 8px 16px;
+  font-size: 1.2rem;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.transpose-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.transpose-btn:active {
+  transform: translateY(1px);
 }
 </style> 

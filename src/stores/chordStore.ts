@@ -1,39 +1,33 @@
 import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
-import { Chord, ChordType } from '@/utils/music'
+import { ref, reactive, computed } from 'vue'
+import { Chord, ChordType, ALL_NOTES, transposeNote, getChordByDegree } from '@/utils/music'
 import AudioSystem from '@/utils/audioSystem'
 import * as Tone from 'tone'
 
-// 键盘映射配置
-const KEY_TO_CHORD: Record<string, { root: string, type: ChordType, octave?: number }> = {
-  // 第二排按键 - 白键基础和弦（FGABCDE）
-  's': { root: 'F', type: ChordType.MAJOR, octave: 3 },      // F3
-  'd': { root: 'G', type: ChordType.MAJOR, octave: 3 },      // G3
-  'f': { root: 'A', type: ChordType.MINOR, octave: 3 },      // A3
-  'g': { root: 'B', type: ChordType.DIMINISHED, octave: 3 }, // B3
-  'h': { root: 'C', type: ChordType.MAJOR, octave: 4 },      // C4 (中央C)
-  'j': { root: 'D', type: ChordType.MINOR, octave: 4 },      // D4
-  'k': { root: 'E', type: ChordType.MINOR, octave: 4 },      // E4
-  
-  // 第一排按键 - 黑键和弦
-  'e': { root: 'F♯', type: ChordType.DIMINISHED, octave: 3 },
-  'r': { root: 'G♯', type: ChordType.DIMINISHED, octave: 3 },
-  'y': { root: 'A♯', type: ChordType.MAJOR, octave: 3 },
-  'u': { root: 'C♯', type: ChordType.DIMINISHED, octave: 4 },
-  'i': { root: 'D♯', type: ChordType.AUGMENTED, octave: 4 },
+// 键盘映射到级数（而不是固定的和弦）
+const KEY_TO_DEGREE: Record<string, { degree: number, octave: number }> = {
+  // 第二排按键 - 白键基础和弦（I ii iii IV V vi vii°）
+  's': { degree: 4, octave: 3 },      // IV (F in C major)
+  'd': { degree: 5, octave: 3 },      // V  (G in C major)
+  'f': { degree: 6, octave: 3 },      // vi (A in C major)
+  'g': { degree: 7, octave: 3 },      // vii°(B in C major)
+  'h': { degree: 1, octave: 4 },      // I  (C in C major)
+  'j': { degree: 2, octave: 4 },      // ii (D in C major)
+  'k': { degree: 3, octave: 4 },      // iii(E in C major)
   
   // 第三排按键 - 七和弦
-  'z': { root: 'F', type: ChordType.MAJOR_SEVENTH, octave: 3 },
-  'x': { root: 'G', type: ChordType.DOMINANT_SEVENTH, octave: 3 },
-  'c': { root: 'A', type: ChordType.MINOR_SEVENTH, octave: 3 },
-  'v': { root: 'B', type: ChordType.HALF_DIMINISHED_SEVENTH, octave: 3 },
-  'b': { root: 'C', type: ChordType.MAJOR_SEVENTH, octave: 4 },
-  'n': { root: 'D', type: ChordType.MINOR_SEVENTH, octave: 4 },
-  'm': { root: 'E', type: ChordType.MINOR_SEVENTH, octave: 4 }
+  'z': { degree: 4, octave: 3 },      // IV7
+  'x': { degree: 5, octave: 3 },      // V7
+  'c': { degree: 6, octave: 3 },      // vi7
+  'v': { degree: 7, octave: 3 },      // vii°7
+  'b': { degree: 1, octave: 4 },      // I7
+  'n': { degree: 2, octave: 4 },      // ii7
+  'm': { degree: 3, octave: 4 }       // iii7
 }
 
 export const useChordStore = defineStore('chord', () => {
   const currentChord = ref<Chord | null>(null)
+  const currentKey = ref('C') // 当前调性，默认为C调
   const modifiers = ref({
     shift: false,
     ctrl: false,
@@ -43,6 +37,50 @@ export const useChordStore = defineStore('chord', () => {
   const pressedKeys = reactive(new Set<string>())
   const isAudioInitialized = ref(false)
   
+  // 计算当前调性下的和弦映射
+  const KEY_TO_CHORD = computed(() => {
+    const mapping: Record<string, { root: string, type: ChordType, octave?: number }> = {};
+    
+    // 处理基础和弦键位
+    for (const [key, config] of Object.entries(KEY_TO_DEGREE)) {
+      const chord = getChordByDegree(currentKey.value, config.degree, config.octave);
+      mapping[key] = { ...chord, octave: config.octave };
+    }
+    
+    return mapping;
+  })
+
+  // 转调函数
+  function transpose(newKey: string) {
+    if (ALL_NOTES.includes(newKey)) {
+      currentKey.value = newKey;
+      // 如果有正在播放的和弦，更新它
+      if (currentChord.value) {
+        const pressedKey = Array.from(pressedKeys)[0];
+        if (pressedKey && KEY_TO_DEGREE[pressedKey]) {
+          const degree = KEY_TO_DEGREE[pressedKey].degree;
+          const octave = KEY_TO_DEGREE[pressedKey].octave;
+          const newChord = getChordByDegree(currentKey.value, degree, octave);
+          playChord(new Chord(newChord.root, octave, newChord.type));
+        }
+      }
+    }
+  }
+
+  // 升调
+  function transposeUp() {
+    const currentIndex = ALL_NOTES.indexOf(currentKey.value);
+    const newKey = ALL_NOTES[(currentIndex + 1) % 12];
+    transpose(newKey);
+  }
+
+  // 降调
+  function transposeDown() {
+    const currentIndex = ALL_NOTES.indexOf(currentKey.value);
+    const newKey = ALL_NOTES[(currentIndex - 1 + 12) % 12];
+    transpose(newKey);
+  }
+
   // 初始化音频系统
   async function initAudio(): Promise<boolean> {
     if (isAudioInitialized.value) {
@@ -161,7 +199,7 @@ export const useChordStore = defineStore('chord', () => {
     pressedKeys.add(key)
     
     // 获取和弦配置
-    const chordConfig = KEY_TO_CHORD[key]
+    const chordConfig = KEY_TO_CHORD.value[key]
     if (!chordConfig) return
     
     // 应用修饰符并播放和弦
@@ -184,14 +222,16 @@ export const useChordStore = defineStore('chord', () => {
     pressedKeys.delete(key)
     
     // 如果是和弦键
-    if (KEY_TO_CHORD[key]) {
+    if (KEY_TO_DEGREE[key]) {
       // 检查是否还有其他和弦键被按下
-      const remainingChordKeys = Array.from(pressedKeys).filter(k => KEY_TO_CHORD[k])
+      const remainingChordKeys = Array.from(pressedKeys).filter(k => KEY_TO_DEGREE[k])
       
       if (remainingChordKeys.length > 0) {
         // 播放最后一个按下的和弦
         const lastKey = remainingChordKeys[remainingChordKeys.length - 1]
-        const chord = applyModifiers(KEY_TO_CHORD[lastKey])
+        const degreeConfig = KEY_TO_DEGREE[lastKey]
+        const chordConfig = getChordByDegree(currentKey.value, degreeConfig.degree, degreeConfig.octave)
+        const chord = applyModifiers({ ...chordConfig, octave: degreeConfig.octave })
         playChord(chord)
       } else {
         // 没有其他和弦键被按下，停止播放
@@ -202,6 +242,7 @@ export const useChordStore = defineStore('chord', () => {
   
   return {
     currentChord,
+    currentKey,
     modifiers,
     pressedKeys,
     isAudioInitialized,
@@ -215,6 +256,9 @@ export const useChordStore = defineStore('chord', () => {
     handleKeyDown,
     handleKeyUp,
     initAudio,
-    applyModifiers
+    applyModifiers,
+    transpose,
+    transposeUp,
+    transposeDown
   }
 }) 

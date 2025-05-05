@@ -215,4 +215,66 @@ export class Chord {
   get noteNames(): string[] {
     return this.notes.map(note => note.fullName);
   }
+}
+
+// 所有音符（包括升降号）
+export const ALL_NOTES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+
+// 获取音符在音阶中的位置（0-11）
+export function getNoteIndex(note: string): number {
+  return ALL_NOTES.indexOf(note);
+}
+
+// 根据位置获取音符
+export function getNoteByIndex(index: number): string {
+  // 确保索引在0-11范围内
+  const normalizedIndex = ((index % 12) + 12) % 12;
+  return ALL_NOTES[normalizedIndex];
+}
+
+// 计算音程
+export function getInterval(note1: string, note2: string): number {
+  const index1 = getNoteIndex(note1);
+  const index2 = getNoteIndex(note2);
+  return ((index2 - index1 + 12) % 12);
+}
+
+// 根据音程获取新音符
+export function transposeNote(note: string, semitones: number): string {
+  const index = getNoteIndex(note);
+  return getNoteByIndex(index + semitones);
+}
+
+// 获取大调音阶的级数
+export function getScaleDegree(tonic: string, note: string): number {
+  const interval = getInterval(tonic, note);
+  // 大调音阶的音程模式：2,2,1,2,2,2,1
+  const majorScaleIntervals = [0, 2, 4, 5, 7, 9, 11];
+  return majorScaleIntervals.indexOf(interval) + 1;
+}
+
+// 根据调性和级数获取和弦
+export function getChordByDegree(tonic: string, degree: number, octave: number = 4): { root: string, type: ChordType } {
+  // 大调音阶的和弦类型模式
+  const chordTypes = [
+    ChordType.MAJOR,        // I
+    ChordType.MINOR,        // ii
+    ChordType.MINOR,        // iii
+    ChordType.MAJOR,        // IV
+    ChordType.MAJOR,        // V
+    ChordType.MINOR,        // vi
+    ChordType.DIMINISHED    // vii°
+  ];
+
+  // 大调音阶的音程
+  const intervals = [0, 2, 4, 5, 7, 9, 11];
+  
+  // 计算根音
+  const rootIndex = getNoteIndex(tonic) + intervals[(degree - 1) % 7];
+  const root = getNoteByIndex(rootIndex);
+  
+  return {
+    root,
+    type: chordTypes[(degree - 1) % 7]
+  };
 } 
