@@ -136,22 +136,7 @@ function preventDefaultKeys(e: KeyboardEvent) {
 
 // 挂载和卸载全局事件监听器
 onMounted(() => {
-  // 等待用户第一次交互后再初始化音频系统
-  const initAudio = async () => {
-    try {
-      await chordStore.initAudio();
-    } catch (error) {
-      console.error('Failed to initialize audio:', error);
-    }
-    window.removeEventListener('click', initAudio);
-    window.removeEventListener('keydown', initAudio);
-    window.removeEventListener('touchstart', initAudio);
-  };
-
-  window.addEventListener('click', initAudio, { once: true });
-  window.addEventListener('keydown', initAudio, { once: true });
-  window.addEventListener('touchstart', initAudio, { once: true });
-
+  // 移除音频初始化相关代码
   window.addEventListener('keydown', preventDefaultKeys, true);
   
   // 添加事件监听器

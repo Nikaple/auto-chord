@@ -14,27 +14,21 @@ export default class AudioSystem {
   private reverb: Tone.Reverb;
   private eq: Tone.EQ3;
   private compressor: Tone.Compressor;
+  private samplerLoaded = false;
+  private activeNotes: Set<string> = new Set();
   
   private defaultSettings: AudioSettings = {
     volume: 0.7,
-    release: 1.5,
+    release: 1,
     reverb: 0.3,
     brightness: 0.5,
     dynamics: 0.7
   };
 
-  // 存储当前正在播放的音符
-  private activeNotes: Set<string> = new Set();
-  // 标记采样器是否已加载
-  private samplerLoaded: boolean = false;
-
   constructor() {
-    // 初始化Tone.js
-    Tone.start();
-    
     // 创建效果器
     this.reverb = new Tone.Reverb(2).toDestination();
-    this.reverb.wet.value = this.defaultSettings.reverb;
+    this.reverb.wet.value = 0.3;
     
     this.eq = new Tone.EQ3({
       low: 0,
@@ -48,12 +42,14 @@ export default class AudioSystem {
       attack: 0.1,
       release: 0.2
     }).connect(this.eq);
-    
-    // 初始化采样器
-    this.initSampler();
-    
-    // 应用默认设置
-    this.applySettings(this.defaultSettings);
+  }
+
+  public async init() {
+    await Tone.start()
+    await this.initSampler()
+    this.applySettings(this.defaultSettings)
+    this.samplerLoaded = true
+    return true;
   }
 
   // 初始化采样器
@@ -161,6 +157,11 @@ export default class AudioSystem {
 
   // 播放和弦
   playChord(chord: Chord, duration: string = '1n'): void {
+    if (!this.isSamplerLoaded()) {
+      console.warn('Sampler not loaded, cannot play chord');
+      return;
+    }
+
     // 停止当前活跃的音符以避免叠加
     this.stopActiveNotes();
     
@@ -170,12 +171,9 @@ export default class AudioSystem {
     // 添加到活跃音符集合
     noteNames.forEach(note => this.activeNotes.add(note));
     
-    // 只有在采样器加载完成后才播放
-    if (this.sampler && this.samplerLoaded) {
-      // The velocity also affects the attack and how long it takes for the sound to get up to full volume!
-      const velocity = 0.5 + (this.defaultSettings.dynamics * 0.5);
-      this.sampler.triggerAttackRelease(noteNames, duration, undefined, velocity);
-    }
+    // 播放和弦
+    const velocity = 0.5 + (this.defaultSettings.dynamics * 0.5);
+    this.sampler?.triggerAttackRelease(noteNames, duration, undefined, velocity);
   }
 
   // 停止特定音符
@@ -217,6 +215,6 @@ export default class AudioSystem {
   
   // 检查采样器是否已加载
   isSamplerLoaded(): boolean {
-    return this.samplerLoaded;
+    return this.samplerLoaded && this.sampler !== null;
   }
 } 

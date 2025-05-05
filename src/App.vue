@@ -1,26 +1,36 @@
 <template>
-  <header>
-    <div class="container">
-      <nav>
-        <router-link to="/">首页</router-link>
-        <router-link to="/about">关于</router-link>
-      </nav>
-    </div>
-  </header>
+  <div class="app">
+    <AudioInitializer />
+    <header>
+      <div class="container">
+        <nav>
+          <router-link to="/">首页</router-link>
+          <router-link to="/about">关于</router-link>
+        </nav>
+      </div>
+    </header>
 
-  <main>
-    <router-view />
-  </main>
+    <main>
+      <router-view />
+    </main>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useKeyboardHandler } from '@/composables/useKeyboardHandler';
+import AudioInitializer from '@/components/AudioInitializer.vue'
 
 const { audioSystem } = useKeyboardHandler();
 </script>
 
 <style>
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 header {
   background-color: var(--color-dark);
   padding: 1rem 0;

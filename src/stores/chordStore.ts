@@ -44,14 +44,21 @@ export const useChordStore = defineStore('chord', () => {
   const isAudioInitialized = ref(false)
   
   // 初始化音频系统
-  async function initAudio() {
-    if (!isAudioInitialized.value) {
-      try {
-        await Tone.start()
-        isAudioInitialized.value = true
-      } catch (error) {
-        console.error('Failed to initialize audio:', error)
+  async function initAudio(): Promise<boolean> {
+    if (isAudioInitialized.value) {
+      return audioSystem.isSamplerLoaded();
+    }
+
+    try {
+      const success = await audioSystem.init();
+      if (success && audioSystem.isSamplerLoaded()) {
+        isAudioInitialized.value = true;
+        return true;
       }
+      return false;
+    } catch (error) {
+      console.error('Failed to initialize audio:', error);
+      return false;
     }
   }
   
@@ -105,9 +112,23 @@ export const useChordStore = defineStore('chord', () => {
   
   // 播放和弦
   function playChord(chord: Chord) {
-    if (!isAudioInitialized.value) return
-    audioSystem.playChord(chord)
-    currentChord.value = chord
+    if (!isAudioInitialized.value) {
+      console.warn('Audio system not initialized');
+      return;
+    }
+    if (!audioSystem.isSamplerLoaded()) {
+      console.warn('Audio system not ready');
+      // 尝试重新初始化
+      initAudio().then(success => {
+        if (success) {
+          audioSystem.playChord(chord);
+          currentChord.value = chord;
+        }
+      });
+      return;
+    }
+    audioSystem.playChord(chord);
+    currentChord.value = chord;
   }
   
   // 停止播放
