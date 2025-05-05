@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, markRaw, Raw } from 'vue'
 import { Chord, ChordType, ALL_NOTES, getChordByDegree } from '@/utils/music'
 import AudioSystem from '@/utils/audioSystem'
 
 // 键盘映射到级数（而不是固定的和弦）
-const KEY_TO_DEGREE: Record<string, { degree: number, octave: number, forceType?: ChordType }> = {
+export const KEY_TO_DEGREE: Record<string, { degree: number, octave: number, forceType?: ChordType }> = {
   // 第二排按键 - 白键基础和弦（I ii iii IV V vi vii°）
   's': { degree: 1, octave: 3 },      // I  (C in C major)
   'd': { degree: 2, octave: 3 },      // ii (D in C major)
@@ -34,7 +34,7 @@ const KEY_TO_DEGREE: Record<string, { degree: number, octave: number, forceType?
 }
 
 export const useChordStore = defineStore('chord', () => {
-  const currentChord = ref<Chord | null>(null)
+  const currentChord = ref<Raw<Chord> | null>(null)
   const currentKey = ref('C') // 当前调性，默认为C调
   const modifiers = ref({
     shift: false,
@@ -141,7 +141,7 @@ export const useChordStore = defineStore('chord', () => {
   
   // 更新当前和弦
   function setCurrentChord(chord: Chord | null) {
-    currentChord.value = chord
+    currentChord.value = chord ? markRaw(chord) : null
   }
   
   // 更新修饰键状态

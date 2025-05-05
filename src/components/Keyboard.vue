@@ -391,7 +391,7 @@ function getNoteFromKey(key: string): string {
 }
 
 // 获取和弦显示名称
-function getChordDisplayName(chord: { name: string } & Partial<Chord> | null): string {
+function getChordDisplayName(chord: Chord | null): string {
   if (!chord) return '';
   return chord.name;
 }
