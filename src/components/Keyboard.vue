@@ -473,7 +473,7 @@ function handleTransposeDown() {
   position: relative;
   height: 200px;
   width: 100%;
-  background: #f5f5f5;
+  background: var(--color-background);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -489,8 +489,8 @@ function handleTransposeDown() {
 .white-key {
   flex: 1;
   height: 100%;
-  background: white;
-  border-right: 1px solid #ddd;
+  background: var(--key-white);
+  border-right: 1px solid var(--key-border);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -498,10 +498,21 @@ function handleTransposeDown() {
   padding-bottom: 20px;
   position: relative;
   z-index: 1;
+  color: var(--key-text);
+  transition: all 0.2s ease;
+}
+
+.white-key:hover {
+  background: var(--key-white-hover);
 }
 
 .white-key:last-child {
   border-right: none;
+}
+
+.white-key.active {
+  background-color: var(--key-white-active);
+  color: var(--key-text-inverted);
 }
 
 /* 黑键布局 */
@@ -518,7 +529,7 @@ function handleTransposeDown() {
   position: absolute;
   width: 8%;
   height: 70%;
-  background: #333;
+  background: var(--key-black);
   border-radius: 0 0 4px 4px;
   z-index: 2;
   pointer-events: auto;
@@ -527,7 +538,16 @@ function handleTransposeDown() {
   justify-content: flex-end;
   align-items: center;
   padding-bottom: 20px;
-  color: white;
+  color: var(--key-text-inverted);
+  transition: all 0.2s ease;
+}
+
+.black-key:hover {
+  background: var(--key-black-hover);
+}
+
+.black-key.active {
+  background-color: var(--key-black-active);
 }
 
 /* 黑键位置 */
@@ -565,16 +585,6 @@ function handleTransposeDown() {
   opacity: 0.8;
 }
 
-/* 按键激活状态 */
-.white-key.active {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.black-key.active {
-  background-color: var(--color-primary);
-}
-
 /* 第三排和弦键盘 */
 .keyboard-row {
   display: flex;
@@ -585,18 +595,23 @@ function handleTransposeDown() {
 .seventh-key {
   flex: 1;
   height: 80px;
-  background-color: #4a6072;
-  color: white;
+  background-color: var(--key-seventh);
+  color: var(--key-text-inverted);
   border-radius: 4px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
   padding-bottom: 15px;
+  transition: all 0.2s ease;
+}
+
+.seventh-key:hover {
+  background-color: var(--key-seventh-hover);
 }
 
 .seventh-key.active {
-  background-color: var(--color-primary);
+  background-color: var(--key-seventh-active);
 }
 
 /* 修饰键状态显示 */
@@ -607,7 +622,7 @@ function handleTransposeDown() {
   gap: 10px;
   margin-bottom: 15px;
   padding: 10px;
-  background-color: #f5f5f5;
+  background-color: var(--color-background);
   border-radius: 8px;
   flex-wrap: wrap;
 }
@@ -615,10 +630,10 @@ function handleTransposeDown() {
 .modifier-status button {
   padding: 5px 10px;
   border-radius: 4px;
-  background-color: #e0e0e0;
+  background-color: var(--control-background);
   font-size: 0.85rem;
   font-weight: bold;
-  color: #555;
+  color: var(--control-text);
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 40px;
@@ -627,19 +642,64 @@ function handleTransposeDown() {
   outline: none;
 }
 
+.modifier-status button:hover {
+  background-color: var(--control-background-hover);
+}
+
 .modifier-status button.active {
-  background-color: var(--color-primary);
-  color: white;
+  background-color: var(--control-background-active);
+  color: var(--control-text-active);
 }
 
 .chord-info {
   margin-left: auto;
   padding: 5px 15px;
-  background-color: #e9f7ff;
+  background-color: var(--color-accent-light);
   border-radius: 4px;
-  color: #2c3e50;
+  color: var(--key-text-inverted);
   min-width: 60px;
   text-align: center;
+}
+
+/* 调性选择器 */
+.key-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.key-select {
+  padding: 8px 16px;
+  font-size: 1.2rem;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.transpose-btn {
+  padding: 8px 16px;
+  font-size: 1.2rem;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.transpose-btn:hover {
+  background-color: var(--control-background-hover);
+  border-color: var(--color-primary);
+}
+
+.transpose-btn:active {
+  transform: translateY(1px);
+  background-color: var(--control-background-active);
+  color: var(--control-text-active);
 }
 
 /* 响应式布局 */
@@ -776,11 +836,12 @@ function handleTransposeDown() {
 
 .keyboard-help {
   width: 100%;
-  background-color: #f9f9f9;
+  background-color: var(--color-background);
   padding: 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
   margin-top: 2rem;
+  color: var(--color-text);
 }
 
 .keyboard-help ul {
@@ -798,40 +859,5 @@ function handleTransposeDown() {
   background-color: #f0f0f0;
   padding: 0.5rem;
   border-radius: 4px;
-}
-
-.key-selector {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.key-select {
-  padding: 8px 16px;
-  font-size: 1.2rem;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-}
-
-.transpose-btn {
-  padding: 8px 16px;
-  font-size: 1.2rem;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.transpose-btn:hover {
-  background-color: #f0f0f0;
-}
-
-.transpose-btn:active {
-  transform: translateY(1px);
 }
 </style> 

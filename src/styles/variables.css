@@ -1,19 +1,58 @@
 /* 设计系统变量 */
 :root {
-  /* 颜色系统 */
-  --color-primary: #4a6072;
-  --color-secondary: #2c3e50;
-  --color-accent: #1a5c9a;
-  --color-background: #f5f7fa;
-  --color-dark: #2c3e50;
-  --color-light: #ffffff;
-  --color-gray: #95a5a6;
+  /* 主题色系统 */
+  --color-primary: #4a6072;         /* 主色 */
+  --color-primary-light: #6b8299;   /* 主色亮色 */
+  --color-primary-dark: #334757;    /* 主色暗色 */
+  --color-primary-hover: #5a7082;   /* 主色悬浮 */
+  --color-primary-active: #3d4f5f;  /* 主色激活 */
+  
+  --color-secondary: #2c3e50;       /* 次色 */
+  --color-secondary-light: #3d556d; /* 次色亮色 */
+  --color-secondary-dark: #1a2530;  /* 次色暗色 */
+  
+  --color-accent: #1a5c9a;          /* 强调色 */
+  --color-accent-light: #2474c0;    /* 强调色亮色 */
+  --color-accent-dark: #0f3b66;     /* 强调色暗色 */
+  
+  /* 功能色 */
+  --color-success: #27ae60;         /* 成功 */
+  --color-warning: #f39c12;         /* 警告 */
+  --color-error: #e74c3c;           /* 错误 */
+  --color-info: #3498db;            /* 信息 */
+  
+  /* 中性色 */
+  --color-background: #f5f7fa;      /* 背景色 */
+  --color-surface: #ffffff;         /* 表面色 */
+  --color-border: #d4d4d4;         /* 边框色 */
+  --color-text: #2c3e50;           /* 文本色 */
+  --color-text-light: #95a5a6;     /* 浅色文本 */
+  --color-text-dark: #1a1a1a;      /* 深色文本 */
   
   /* 键盘颜色 */
-  --key-white: #ffffff;
+  --key-white: var(--color-surface);
+  --key-white-hover: #f0f0f0;
+  --key-white-active: var(--color-primary-light);
+  
   --key-black: #1a1a1a;
-  --key-active: var(--color-accent);
-  --key-border: #d4d4d4;
+  --key-black-hover: #2a2a2a;
+  --key-black-active: var(--color-primary);
+  
+  --key-seventh: var(--color-secondary);
+  --key-seventh-hover: var(--color-secondary-light);
+  --key-seventh-active: var(--color-primary);
+  
+  --key-border: var(--color-border);
+  --key-text: var(--color-text);
+  --key-text-light: var(--color-text-light);
+  --key-text-inverted: var(--color-surface);
+  
+  /* 控制按钮颜色 */
+  --control-background: #e0e0e0;
+  --control-background-hover: #d0d0d0;
+  --control-background-active: var(--color-primary);
+  --control-text: var(--color-text);
+  --control-text-active: var(--color-surface);
   
   /* 断点系统 */
   --breakpoint-small: 480px;    /* 手机 */
@@ -78,10 +117,22 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: #1a1a1a;
-    --color-dark: #f5f7fa;
-    --color-light: #2c3e50;
-    --key-white: #e0e0e0;
-    --key-black: #000000;
-    --key-border: #333333;
+    --color-surface: #2c3e50;
+    --color-border: #3d556d;
+    --color-text: #f5f7fa;
+    --color-text-light: #95a5a6;
+    --color-text-dark: #ffffff;
+    
+    --key-white: #2c3e50;
+    --key-white-hover: #3d556d;
+    --key-white-active: var(--color-primary-light);
+    
+    --key-black: #1a1a1a;
+    --key-black-hover: #2a2a2a;
+    --key-black-active: var(--color-primary);
+    
+    --control-background: #3d556d;
+    --control-background-hover: #4a6072;
+    --control-text: var(--color-text);
   }
 } 
