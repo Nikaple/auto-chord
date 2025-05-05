@@ -50,24 +50,24 @@
     <div class="keyboard-help">
       <p>按住键盘上相应的字母键播放和弦。</p>
       
-      <p>第二排键位 (A-L) 映射到C大调的基础和弦：</p>
+      <p>第二排键位 (S-K) 映射到C大调的基础和弦：</p>
       <div class="chord-map">
-        <span><strong>A</strong>: C大调</span>
-        <span><strong>S</strong>: D小调</span>
-        <span><strong>D</strong>: E小调</span>
-        <span><strong>F</strong>: F大调</span>
-        <span><strong>G</strong>: G大调</span>
-        <span><strong>H</strong>: A小调</span>
-        <span><strong>J</strong>: B减七</span>
+        <span><strong>S</strong>: C大调</span>
+        <span><strong>D</strong>: D小调</span>
+        <span><strong>F</strong>: E小调</span>
+        <span><strong>G</strong>: F大调</span>
+        <span><strong>H</strong>: G大调</span>
+        <span><strong>J</strong>: A小调</span>
+        <span><strong>K</strong>: B减七</span>
       </div>
       
-      <p>第一排键位 (W/E/T/Y/U) 映射到特殊和弦：</p>
+      <p>第一排键位 (E/R/Y/U/I) 映射到特殊和弦：</p>
       <div class="chord-map">
-        <span><strong>W</strong>: C#减三</span>
-        <span><strong>E</strong>: D#增三</span>
-        <span><strong>T</strong>: F#减三</span>
-        <span><strong>Y</strong>: G#减三</span>
-        <span><strong>U</strong>: A#大调</span>
+        <span><strong>E</strong>: C#减三</span>
+        <span><strong>R</strong>: D#增三</span>
+        <span><strong>Y</strong>: F#减三</span>
+        <span><strong>U</strong>: G#减三</span>
+        <span><strong>I</strong>: A#大调</span>
       </div>
       
       <p>第三排键位 (Z-M) 映射到C大调的七和弦：</p>
@@ -131,9 +131,9 @@ onUnmounted(() => {
 // 第三排七和弦按键
 const thirdRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
 
-// 钢琴键盘布局 - 第一、二排
+// 钢琴键盘布局 - 第一、二排（已向右移动一位）
 const pianoKeys = [
-  'a', 'w', 's', 'e', 'd', 'f', 't', 'g', 'y', 'h', 'u', 'j'
+  's', 'e', 'd', 'r', 'f', 'g', 'y', 'h', 'u', 'j', 'i', 'k'
 ];
 
 // 记录鼠标按下的键
