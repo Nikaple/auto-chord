@@ -7,7 +7,6 @@
         <span :class="{ active: ctrl }">Ctrl</span>
         <span :class="{ active: alt }">Alt</span>
         <div class="chord-info">
-          <span>当前和弦:</span>
           <strong>{{ currentChord ? currentChord.name : '无' }}</strong>
         </div>
       </div>
@@ -259,7 +258,6 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
   width: 100%;
 }
 
@@ -267,7 +265,6 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 900px;
   gap: 10px;
 }
 
@@ -277,7 +274,6 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
   position: relative;
   height: 180px;
   width: 100%;
-  background-color: #f0f0f0;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -350,11 +346,11 @@ function playChord(mapping: { root: string, type: ChordType } | undefined) {
 
 .keyboard-help {
   width: 100%;
-  max-width: 600px;
   background-color: #f9f9f9;
   padding: 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
+  margin-top: 2rem;
 }
 
 .keyboard-help ul {

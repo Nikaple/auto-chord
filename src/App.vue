@@ -27,6 +27,10 @@ header {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+header .container {
+  padding: 0 1rem;
+}
+
 nav {
   display: flex;
   gap: 1.5rem;
