@@ -22,6 +22,8 @@
   .black-key {
     position: relative !important;
     padding-bottom: 8px !important;
+    width: calc(100% / 12) !important; /* 黑键宽度从1/16改为1/12 */
+    margin-right: calc(100% / 24) !important; /* 间距也相应调整 */
   }
   
   .black-key:last-child {
@@ -96,7 +98,6 @@
     gap: 4px !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
-    padding-bottom: 4px !important;
     -webkit-overflow-scrolling: touch !important;
   }
   
@@ -176,9 +177,5 @@
 @media (max-width: 768px) {
   .chord-info {
     gap: var(--spacing-sm) !important;
-  }
-  
-  .chord-type, .chord-qualities {
-    font-size: var(--font-size-sm) !important;
   }
 } 

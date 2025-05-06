@@ -1,0 +1,22 @@
+{
+  "name": "自动和弦",
+  "short_name": "自动和弦",
+  "description": "在线演奏和学习音乐和弦的应用",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#4a6072",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/maskable-icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ]
+} 

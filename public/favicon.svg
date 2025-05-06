@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="100%" height="100%">
+  <title>钢琴键盘图标</title>
+  
+  <!-- 钢琴上方框 -->
+  <rect x="5" y="0" width="110" height="75" rx="1" fill="#321b41" />
+  
+  <!-- 白键 - 使用浅灰色 #f4f4f4，边框 #9b9b9b -->
+  <rect x="10" y="10" width="20" height="60" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="1" />
+  <rect x="30" y="10" width="20" height="60" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="1" />
+  <rect x="50" y="10" width="20" height="60" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="1" />
+  <rect x="70" y="10" width="20" height="60" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="1" />
+  <rect x="90" y="10" width="20" height="60" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="1" />
+  
+  <!-- 黑键 - 使用紫色 #533566 -->
+  <rect x="25" y="10" width="10" height="35" rx="2" fill="#533566" />
+  <rect x="45" y="10" width="10" height="35" rx="2" fill="#533566" />
+  <rect x="65" y="10" width="10" height="35" rx="2" fill="#533566" />
+  <rect x="85" y="10" width="10" height="35" rx="2" fill="#533566" />
+</svg> 

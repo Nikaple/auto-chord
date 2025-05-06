@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <title>钢琴键盘图标 - 自适应版本</title>
+  <!-- 背景 - 保留用于自适应图标 -->
+  <rect x="0" y="0" width="100" height="100" fill="#4a6072" />
+  
+  <!-- 钢琴上方框 - 更新为覆盖整个钢琴区域 -->
+  <rect x="10" y="20" width="80" height="55" rx="1" fill="#321b41" />
+  
+  <!-- 白键 - 使用浅灰色 #f4f4f4，边框 #9b9b9b -->
+  <rect x="15" y="30" width="14" height="40" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="0.5" />
+  <rect x="29" y="30" width="14" height="40" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="0.5" />
+  <rect x="43" y="30" width="14" height="40" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="0.5" />
+  <rect x="57" y="30" width="14" height="40" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="0.5" />
+  <rect x="71" y="30" width="14" height="40" rx="2" fill="#f4f4f4" stroke="#9b9b9b" stroke-width="0.5" />
+  
+  <!-- 黑键 - 使用紫色 #533566 -->
+  <rect x="25" y="30" width="8" height="25" rx="1" fill="#533566" />
+  <rect x="39" y="30" width="8" height="25" rx="1" fill="#533566" />
+  <rect x="53" y="30" width="8" height="25" rx="1" fill="#533566" />
+  <rect x="67" y="30" width="8" height="25" rx="1" fill="#533566" />
+</svg> 

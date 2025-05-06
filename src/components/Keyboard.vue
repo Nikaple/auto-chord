@@ -75,7 +75,7 @@
         <!-- 其他和弦组 -->
         <div class="chord-group">
           <div class="group-row">
-            <div class="group-label">其他和弦</div>
+            <div class="group-label">其他</div>
             <div class="group-buttons">
               <button :class="{ active: isChordTypeActive(ChordType.MINOR_SIXTH) }" @click.prevent="handleNumberKey('5')">
                 m6
@@ -483,7 +483,7 @@ function handleInversion(inversion: number) {
 .black-keys {
   position: absolute;
   top: 0;
-  left: calc(100% / 8 - 100% / 32);
+  left: calc(100% / 8 - 100% / 24); /* 调整黑键起始位置 */
   width: 100%;
   height: 85%;
   pointer-events: none;
@@ -493,7 +493,7 @@ function handleInversion(inversion: number) {
 
 .black-key {
   position: relative;
-  width: calc(100% / 16); /* 黑键宽度为白键的一半 */
+  width: calc(100% / 12); /* 黑键宽度从1/16改为1/12 */
   height: 70%;
   background: var(--key-black);
   border-radius: 0 0 4px 4px;
@@ -506,7 +506,7 @@ function handleInversion(inversion: number) {
   padding-bottom: 20px;
   color: var(--key-text-inverted);
   transition: all 0.2s ease;
-  margin-right: calc(100% / 16); /* 一个白键减去黑键宽度 */
+  margin-right: calc(100% / 24); /* 间距也相应调整 */
 }
 
 .black-key:last-child {
@@ -597,6 +597,14 @@ function handleInversion(inversion: number) {
   background-color: var(--color-background);
   border-radius: 8px;
   align-items: flex-start;
+  overflow-x: auto; /* 允许横向滚动 */
+  scrollbar-width: none; /* Firefox隐藏滚动条 */
+  -ms-overflow-style: none; /* IE和Edge隐藏滚动条 */
+}
+
+/* Webkit浏览器隐藏滚动条 */
+.modifier-status::-webkit-scrollbar {
+  display: none;
 }
 
 /* 和弦组样式 */
@@ -610,26 +618,43 @@ function handleInversion(inversion: number) {
 
 .group-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
+  overflow-x: auto; /* 允许横向滚动 */
+  scrollbar-width: none; /* Firefox隐藏滚动条 */
+  -ms-overflow-style: none; /* IE和Edge隐藏滚动条 */
+}
+
+/* Webkit浏览器隐藏滚动条 */
+.group-row::-webkit-scrollbar {
+  display: none;
 }
 
 .group-label {
   font-size: 0.8rem;
   color: var(--color-text-light);
   font-weight: 500;
-  padding: 4px 8px;
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   white-space: nowrap;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .group-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  justify-content: space-evenly;  /* 改为左对齐 */
+  justify-content: flex-start;  /* 改为左对齐 */
+  overflow-x: auto; /* 允许横向滚动 */
+  scrollbar-width: none; /* Firefox隐藏滚动条 */
+  -ms-overflow-style: none; /* IE和Edge隐藏滚动条 */
+}
+
+/* Webkit浏览器隐藏滚动条 */
+.group-buttons::-webkit-scrollbar {
+  display: none;
 }
 
 /* 按钮样式调整 */
