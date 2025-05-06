@@ -96,15 +96,6 @@
             </div>
           </div>
         </div>
-
-        <div class="chord-info" v-if="currentChord">
-          <strong>{{ getChordDisplayName(currentChord) }}</strong>
-        </div>
-      </div>
-      
-      <!-- 当前和弦类型信息，仅用于调试 -->
-      <div class="debug-info" v-if="activeChordType">
-        当前激活的和弦类型: {{ activeChordType ? getChordTypeLabel(activeChordType) : '未激活和弦类型' }}
       </div>
       
       <!-- 标准钢琴键盘 -->
@@ -169,14 +160,16 @@
     <div class="keyboard-help" v-if="!isMobileDevice">
       <p>键盘控制说明：</p>
       <ul>
-        <li><strong>1</strong>: 切换小和弦 / <strong>Shift+1</strong>: 切换大和弦</li>
-        <li><strong>2</strong>: 切换sus4和弦 / <strong>Shift+2</strong>: 切换sus2和弦</li>
-        <li><strong>3</strong>: 切换小七和弦 / <strong>Shift+3</strong>: 切换大七和弦</li>
-        <li><strong>4</strong>: 切换属七和弦 / <strong>Shift+4</strong>: 切换小大七和弦</li>
-        <li><strong>5</strong>: 切换小六和弦 / <strong>Shift+5</strong>: 切换大六和弦</li>
-        <li><strong>6</strong>: 切换减和弦 / <strong>Shift+6</strong>: 切换增和弦</li>
-        <li><strong>7</strong>: 切换小九和弦 / <strong>Shift+7</strong>: 切换大九和弦</li>
+        <li><strong>1</strong>: 小三和弦 / <strong>⇧+1</strong>: 大三和弦</li>
+        <li><strong>2</strong>: sus4和弦 / <strong>⇧+2</strong>: sus2和弦</li>
+        <li><strong>3</strong>: 小七和弦 / <strong>⇧+3</strong>: 大七和弦</li>
+        <li><strong>4</strong>: 属七和弦 / <strong>⇧+4</strong>: 小大七和弦</li>
+        <li><strong>5</strong>: 小六和弦 / <strong>⇧+5</strong>: 大六和弦</li>
+        <li><strong>6</strong>: 减三和弦 / <strong>⇧+6</strong>: 增三和弦</li>
+        <li><strong>7</strong>: 小九和弦 / <strong>⇧+7</strong>: 大九和弦</li>
       </ul>
+      <p>白键（S D F G H J K L）和黑键（E R Y U I）用于播放和弦。</p>
+      <p>第三排（Z X C V B N M ,）用于播放七和弦。</p>
     </div>
   </div>
 </template>
@@ -347,12 +340,6 @@ function getNoteFromKey(key: string): string {
     'i': 'A♯'
   };
   return noteMap[key] || '';
-}
-
-// 获取和弦显示名称
-function getChordDisplayName(chord: Chord | null): string {
-  if (!chord) return '';
-  return chord.name;
 }
 
 // 处理调性变更
@@ -677,17 +664,6 @@ button.active .shortcut-badge {
   }
 }
 
-.chord-info {
-  margin-top: 10px;
-  align-self: flex-end;
-  padding: 5px 15px;
-  background-color: var(--color-accent-light);
-  border-radius: 4px;
-  color: var(--key-text-inverted);
-  min-width: 60px;
-  text-align: center;
-}
-
 /* 调性选择器 */
 .key-selector {
   display: flex;
@@ -861,16 +837,6 @@ button.active .shortcut-badge {
 /* 确保所有元素使用 border-box */
 *, *:before, *:after {
   box-sizing: border-box;
-}
-
-/* 调试信息样式 */
-.debug-info {
-  padding: 5px 10px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
-  color: #666;
 }
 
 .keyboard-help {
