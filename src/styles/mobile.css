@@ -16,50 +16,92 @@
   }
   
   .white-key {
-    width: calc(100% / 7) !important;
+    padding-bottom: 8px !important;
   }
   
   .black-key {
-    width: 8% !important;
-    margin-left: -4% !important;
-    margin-right: -4% !important;
+    position: relative !important;
+    padding-bottom: 8px !important;
+  }
+  
+  .black-key:last-child {
+    margin-right: 0 !important;
+  }
+  
+  .black-key.hidden {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: calc(100% / 8) !important; /* 一个白键的宽度 */
+    margin-right: 0 !important; /* 不需要额外边距 */
   }
   
   .note-name {
     font-size: var(--font-size-xs) !important;
+    margin-bottom: 2px !important;
   }
   
   .key-label {
     font-size: var(--font-size-xxs) !important;
   }
   
+  /* 七和弦按钮优化 */
   .seventh-key {
     height: calc(var(--keyboard-height-small) * 0.3) !important;
     font-size: var(--font-size-sm) !important;
+    width: calc(100% / 8) !important; /* 确保8个按钮均匀分布 */
+    padding: 4px !important;
+    margin: 0 2px !important;
   }
   
   .keyboard-row {
-    gap: var(--spacing-xs) !important; /* 增加按钮间距，防止误触 */
+    gap: 4px !important;
+    padding: 0 4px !important;
+    margin-top: 8px !important;
+    overflow-x: auto !important; /* 允许横向滚动 */
+    -webkit-overflow-scrolling: touch !important; /* 平滑滚动 */
+    scrollbar-width: none !important; /* 隐藏滚动条 */
+  }
+  
+  .keyboard-row::-webkit-scrollbar {
+    display: none !important; /* 隐藏滚动条 */
   }
   
   /* 和弦性质展示优化 */
   .modifier-status {
-    justify-content: center !important;
+    justify-content: flex-start !important;
     flex-wrap: wrap !important;
-    gap: var(--spacing-xs) !important;
+    gap: 6px !important;
+    padding: 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
   .modifier-status button {
-    padding: var(--spacing-xs) var(--spacing-sm) !important;
-    min-width: 50px !important;
-    min-height: 36px !important;
+    padding: 6px 10px !important;
+    min-width: 40px !important;
+    min-height: 32px !important;
     font-size: var(--font-size-sm) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border: none !important;
-    outline: none !important;
-    -webkit-tap-highlight-color: transparent !important; /* 移除移动端点击高亮 */
+    white-space: nowrap !important;
+  }
+  
+  .chord-group {
+    min-width: auto !important;
+    flex: 0 0 auto !important;
+  }
+  
+  .group-buttons {
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 4px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .group-buttons::-webkit-scrollbar {
+    display: none !important;
   }
   
   .chord-info {
@@ -91,15 +133,15 @@
   /* 和弦性质按钮优化 */
   .quality-buttons {
     flex-wrap: wrap !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     gap: var(--spacing-xs) !important;
   }
   
   .quality {
     padding: var(--spacing-xxs) var(--spacing-xs) !important;
     font-size: var(--font-size-sm) !important;
-    min-width: 50px !important;
-    min-height: 36px !important;
+    min-width: 40px !important;
+    min-height: 32px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;

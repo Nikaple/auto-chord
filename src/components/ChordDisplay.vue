@@ -26,11 +26,6 @@
         <span>转位：</span>
         <span class="chord-inversion-label">{{ getInversionLabel(currentChord) }}</span>
       </div>
-
-      <div class="chord-shortcuts">
-        <span class="shortcut-hint">Q：切换转位</span>
-        <span class="shortcut-hint">⇧+Q：重置为原位</span>
-      </div>
     </div>
     
     <div v-else class="no-chord">

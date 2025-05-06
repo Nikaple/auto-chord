@@ -111,19 +111,19 @@
               <button 
                 :class="{ active: chordStore.currentInversion === 1 }" 
                 @click="handleInversion(1)">
-                第一转位
+                转1
                 <span class="shortcut-badge">Q</span>
               </button>
               <button 
                 :class="{ active: chordStore.currentInversion === 2 }" 
                 @click="handleInversion(2)">
-                第二转位
+                转2
                 <span class="shortcut-badge">Q</span>
               </button>
               <button 
                 :class="{ active: chordStore.currentInversion === 3 }" 
                 @click="handleInversion(3)">
-                第三转位
+                转3
                 <span class="shortcut-badge">Q</span>
               </button>
             </div>
@@ -157,7 +157,7 @@
             v-for="key in blackKeys" 
             :key="key"
             class="key black-key" 
-            :class="{ 'active': isKeyActive(key) }"
+            :class="{ 'active': isKeyActive(key), 'hidden': key === 'hidden' }"
             :data-note="getNoteFromKey(key)"
             @mousedown="handleMouseDown(key, chordMapping[key])"
             @mouseup="handleMouseUp()"
@@ -278,7 +278,7 @@ const thirdRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm', ','];
 
 // 分离白键和黑键
 const whiteKeys = ['s', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
-const blackKeys = ['e', 'r', 'y', 'u', 'i'];
+const blackKeys = ['e', 'r', 'hidden', 'y', 'u', 'i'];
 
 // 记录鼠标按下的键
 const mouseActiveKey = ref<string | null>(null);
@@ -368,6 +368,7 @@ function handleNumberKey(key: string, withShift: boolean = false) {
 
 // 获取音符名称
 function getNoteFromKey(key: string): string {
+  if (key === 'hidden') return '';
   const noteMap: Record<string, string> = {
     'e': 'C♯',
     'r': 'D♯',
@@ -482,15 +483,17 @@ function handleInversion(inversion: number) {
 .black-keys {
   position: absolute;
   top: 0;
-  left: 0;
+  left: calc(100% / 8 - 100% / 32);
   width: 100%;
   height: 85%;
   pointer-events: none;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .black-key {
-  position: absolute;
-  width: 8%;
+  position: relative;
+  width: calc(100% / 16); /* 黑键宽度为白键的一半 */
   height: 70%;
   background: var(--key-black);
   border-radius: 0 0 4px 4px;
@@ -503,6 +506,18 @@ function handleInversion(inversion: number) {
   padding-bottom: 20px;
   color: var(--key-text-inverted);
   transition: all 0.2s ease;
+  margin-right: calc(100% / 16); /* 一个白键减去黑键宽度 */
+}
+
+.black-key:last-child {
+  margin-right: 0;
+}
+
+.black-key.hidden {
+  visibility: hidden;
+  pointer-events: none;
+  width: calc(100% / 8); /* 一个白键的宽度 */
+  margin-right: 0; /* 不需要额外边距 */
 }
 
 .black-key:hover {
@@ -512,13 +527,6 @@ function handleInversion(inversion: number) {
 .black-key.active {
   background-color: var(--key-black-active);
 }
-
-/* 黑键位置 */
-.black-key[data-note="C♯"] { left: 10.7%; }
-.black-key[data-note="D♯"] { left: 22.3%; }
-.black-key[data-note="F♯"] { left: 47.3%; }
-.black-key[data-note="G♯"] { left: 60.1%; }
-.black-key[data-note="A♯"] { left: 72.9%; }
 
 /* 按键文字样式 */
 .note-name {
@@ -581,16 +589,20 @@ function handleInversion(inversion: number) {
 /* 修饰键状态显示 */
 .modifier-status {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 15px;
   padding: 15px;
   background-color: var(--color-background);
   border-radius: 8px;
+  align-items: flex-start;
 }
 
 /* 和弦组样式 */
 .chord-group {
+  flex: 1;
+  min-width: 150px;  /* 减小最小宽度，让转位按钮组更紧凑 */
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.03);
   border-radius: 6px;
@@ -598,8 +610,8 @@ function handleInversion(inversion: number) {
 
 .group-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .group-label {
@@ -610,18 +622,19 @@ function handleInversion(inversion: number) {
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   white-space: nowrap;
+  text-align: center;
 }
 
 .group-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  flex: 1;
+  gap: 6px;
+  justify-content: space-evenly;  /* 改为左对齐 */
 }
 
 /* 按钮样式调整 */
 .modifier-status button {
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
   background-color: var(--control-background);
   font-size: 0.85rem;
@@ -630,7 +643,7 @@ function handleInversion(inversion: number) {
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
-  min-width: 40px;
+  min-width: 36px;
   text-align: center;
   border: none;
   outline: none;
@@ -647,68 +660,56 @@ function handleInversion(inversion: number) {
   color: var(--control-text-active);
 }
 
+/* 快捷键标签样式 */
+.shortcut-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 0.6rem;
+  padding: 1px 3px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  color: var(--color-text-light);
+}
+
 /* 响应式布局调整 */
 @media (max-width: 768px) {
   .modifier-status {
     padding: 10px;
-    gap: 10px;
+    gap: 8px;
   }
 
   .chord-group {
     padding: 8px;
+    min-width: 150px;
   }
 
   .group-row {
-    gap: 8px;
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 6px;
   }
 
   .group-buttons {
-    gap: 6px;
-    width: 100%;
+    gap: 4px;
   }
 
   .group-label {
     font-size: 0.75rem;
+    padding: 3px 6px;
   }
 
   .modifier-status button {
-    padding: 4px 8px;
+    padding: 3px 6px;
     font-size: 0.8rem;
+    min-width: 32px;
   }
-}
 
-/* 快捷键角标样式 */
-.shortcut-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background-color: rgba(0, 0, 0, 0.1);  /* 改用半透明黑色背景 */
-  color: var(--color-text);  /* 使用主题文字颜色 */
-  font-size: 0.65rem;
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-weight: normal;
-  opacity: 0.85;
-  border: 1px solid rgba(0, 0, 0, 0.1);  /* 添加细边框增加辨识度 */
-}
-
-/* 激活状态下的角标样式 */
-button.active .shortcut-badge {
-  background-color: rgba(255, 255, 255, 0.2);  /* 激活时使用半透明白色背景 */
-  color: var(--control-text-active);  /* 使用激活状态的文字颜色 */
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* 鼠标悬停时的角标样式 */
-.modifier-status button:hover .shortcut-badge {
-  background-color: rgba(0, 0, 0, 0.15);  /* 悬停时稍微加深背景 */
-}
-
-/* 移动端隐藏快捷键提示 */
-@media (max-width: 768px) {
+  /* 在移动端隐藏快捷键标签 */
   .shortcut-badge {
+    display: none;
+  }
+
+  /* 在移动端隐藏键盘控制说明 */
+  .keyboard-help {
     display: none;
   }
 }
@@ -784,16 +785,10 @@ button.active .shortcut-badge {
   }
 
   .black-key {
-    width: 9%;
     padding-bottom: 12px;
   }
 
-  .white-key {
-    width: calc(100% / 8) !important; /* 修改为8键布局 */
-  }
-
   .seventh-key {
-    width: calc(100% / 8) !important; /* 修改为8键布局 */
     height: calc(var(--keyboard-height-small) * 0.3) !important;
     font-size: var(--font-size-sm) !important;
   }
@@ -832,7 +827,6 @@ button.active .shortcut-badge {
   }
 
   .black-key {
-    width: 8%;
     padding-bottom: 8px;
   }
 
@@ -916,12 +910,6 @@ button.active .shortcut-badge {
   border-radius: 4px;
 }
 
-/* 转位按钮组样式 */
-.chord-group:last-child {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--color-border);
-}
 
 /* 转位按钮激活状态 */
 .group-buttons button.active {
