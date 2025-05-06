@@ -37,9 +37,9 @@
 <script setup lang="ts">
 import { ChordType, Chord } from '@/utils/music'
 import { useChordStore } from '@/stores/chordStore'
-import { KEY_TO_DEGREE } from '@/stores/chordStore'
 import { computed } from 'vue'
 import { getInterval } from '@/utils/music'
+import { getChordTypeLabel, getChordSuffix, getShortNoteName } from '@/utils/chordUtils'
 
 // 使用和弦 store
 const chordStore = useChordStore()
@@ -48,60 +48,7 @@ const currentChord = computed(() => chordStore.currentChord)
 // 获取简短的和弦名称
 function getShortChordName(chord: Chord | null): string {
   if (!chord) return '';
-  const name = chord.name;
-  return name.replace('major', 'maj')
-            .replace('minor', 'm')
-            .replace('diminished', 'dim')
-            .replace('augmented', 'aug')
-            .replace('seventh', '7');
-}
-
-// 获取简短的音符名称
-function getShortNoteName(note: string): string {
-  return note.replace('sharp', '#')
-            .replace('flat', 'b');
-}
-
-// 获取简短的和弦类型标签
-function getShortChordTypeLabel(type: ChordType): string {
-  const typeLabels: Record<string, string> = {
-    'major': 'M',
-    'minor': 'm',
-    'diminished': 'dim',
-    'augmented': 'aug',
-    'sus2': 'sus2',
-    'sus4': 'sus4',
-    '7': '7',
-    'M7': 'M7',
-    'min7': 'm7',
-    '6': '6',
-    'min6': 'm6',
-    '9': '9',
-    'm7b5': 'm7b5'
-  };
-  
-  return typeLabels[type] || type;
-}
-
-// 获取和弦类型的中文说明
-function getChordTypeLabel(type: ChordType): string {
-  const typeLabels: Record<string, string> = {
-    'major': '大三和弦',
-    'minor': '小三和弦',
-    'diminished': '减三和弦',
-    'augmented': '增三和弦',
-    'sus2': '挂二和弦',
-    'sus4': '挂四和弦',
-    '7': '属七和弦',
-    'M7': '大七和弦',
-    'min7': '小七和弦',
-    '6': '大六和弦',
-    'min6': '小六和弦',
-    '9': '大九和弦',
-    'm7b5': '半减七和弦'
-  };
-  
-  return typeLabels[type] || type;
+  return `${chord.root.name}${getChordSuffix(chord.type)}`;
 }
 
 // 获取和弦级数
@@ -203,7 +150,6 @@ function getChordInversion(chord: Chord | null): string {
   // 根据和弦类型和最低音找出是哪种转位
   const chordNotes = chord.notes.map(note => note.name);
   const rootIndex = chordNotes.indexOf(rootName);
-  const bassIndex = 0; // 最低音总是在索引0
   
   // 计算转位次数（三和弦有两种转位，七和弦有三种转位）
   const inversions = ['原位', '第一转位', '第二转位', '第三转位'];

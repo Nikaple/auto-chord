@@ -14,20 +14,89 @@
 
       <!-- 修饰键状态显示 -->
       <div class="modifier-status">
-        <button :class="{ active: isChordTypeActive(ChordType.MINOR) }" @click.prevent="handleNumberKey('1')">m</button>
-        <button :class="{ active: isChordTypeActive(ChordType.MAJOR) }" @click.prevent="handleNumberKey('1', true)">M</button>
-        <button :class="{ active: isChordTypeActive(ChordType.SUSPENDED_FOURTH) }" @click.prevent="handleNumberKey('2')">sus4</button>
-        <button :class="{ active: isChordTypeActive(ChordType.SUSPENDED_SECOND) }" @click.prevent="handleNumberKey('2', true)">sus2</button>
-        <button :class="{ active: isChordTypeActive(ChordType.MINOR_SEVENTH) }" @click.prevent="handleNumberKey('3')">m7</button>
-        <button :class="{ active: isChordTypeActive(ChordType.MAJOR_SEVENTH) }" @click.prevent="handleNumberKey('3', true)">M7</button>
-        <button :class="{ active: isChordTypeActive(ChordType.DOMINANT_SEVENTH) }" @click.prevent="handleNumberKey('4')">7</button>
-        <button :class="{ active: isChordTypeActive(ChordType.MINOR_MAJOR_SEVENTH) }" @click.prevent="handleNumberKey('4', true)">mM7</button>
-        <button :class="{ active: isChordTypeActive(ChordType.MINOR_SIXTH) }" @click.prevent="handleNumberKey('5')">m6</button>
-        <button :class="{ active: isChordTypeActive(ChordType.SIXTH) }" @click.prevent="handleNumberKey('5', true)">6</button>
-        <button :class="{ active: isChordTypeActive(ChordType.DIMINISHED) }" @click.prevent="handleNumberKey('6')">dim</button>
-        <button :class="{ active: isChordTypeActive(ChordType.AUGMENTED) }" @click.prevent="handleNumberKey('6', true)">aug</button>
-        <button :class="{ active: isChordTypeActive(ChordType.MINOR_NINTH) }" @click.prevent="handleNumberKey('7')">m9</button>
-        <button :class="{ active: isChordTypeActive(ChordType.MAJOR_NINTH) }" @click.prevent="handleNumberKey('7', true)">9</button>
+        <!-- 三和弦组 -->
+        <div class="chord-group">
+          <div class="group-row">
+            <div class="group-label">三和弦</div>
+            <div class="group-buttons">
+              <button :class="{ active: isChordTypeActive(ChordType.MINOR) }" @click.prevent="handleNumberKey('1')">
+                m
+                <span class="shortcut-badge">1</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.MAJOR) }" @click.prevent="handleNumberKey('1', true)">
+                M
+                <span class="shortcut-badge">⇧+1</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.SUSPENDED_FOURTH) }" @click.prevent="handleNumberKey('2')">
+                sus4
+                <span class="shortcut-badge">2</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.SUSPENDED_SECOND) }" @click.prevent="handleNumberKey('2', true)">
+                sus2
+                <span class="shortcut-badge">⇧+2</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.DIMINISHED) }" @click.prevent="handleNumberKey('6')">
+                dim
+                <span class="shortcut-badge">6</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.AUGMENTED) }" @click.prevent="handleNumberKey('6', true)">
+                aug
+                <span class="shortcut-badge">⇧+6</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 七和弦组 -->
+        <div class="chord-group">
+          <div class="group-row">
+            <div class="group-label">七和弦</div>
+            <div class="group-buttons">
+              <button :class="{ active: isChordTypeActive(ChordType.MINOR_SEVENTH) }" @click.prevent="handleNumberKey('3')">
+                m7
+                <span class="shortcut-badge">3</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.MAJOR_SEVENTH) }" @click.prevent="handleNumberKey('3', true)">
+                M7
+                <span class="shortcut-badge">⇧+3</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.DOMINANT_SEVENTH) }" @click.prevent="handleNumberKey('4')">
+                7
+                <span class="shortcut-badge">4</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.MINOR_MAJOR_SEVENTH) }" @click.prevent="handleNumberKey('4', true)">
+                mM7
+                <span class="shortcut-badge">⇧+4</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 其他和弦组 -->
+        <div class="chord-group">
+          <div class="group-row">
+            <div class="group-label">其他和弦</div>
+            <div class="group-buttons">
+              <button :class="{ active: isChordTypeActive(ChordType.MINOR_SIXTH) }" @click.prevent="handleNumberKey('5')">
+                m6
+                <span class="shortcut-badge">5</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.SIXTH) }" @click.prevent="handleNumberKey('5', true)">
+                6
+                <span class="shortcut-badge">⇧+5</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.MINOR_NINTH) }" @click.prevent="handleNumberKey('7')">
+                m9
+                <span class="shortcut-badge">7</span>
+              </button>
+              <button :class="{ active: isChordTypeActive(ChordType.MAJOR_NINTH) }" @click.prevent="handleNumberKey('7', true)">
+                9
+                <span class="shortcut-badge">⇧+7</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="chord-info" v-if="currentChord">
           <strong>{{ getChordDisplayName(currentChord) }}</strong>
         </div>
@@ -35,7 +104,7 @@
       
       <!-- 当前和弦类型信息，仅用于调试 -->
       <div class="debug-info" v-if="activeChordType">
-        当前激活的和弦类型: {{ getActiveChordTypeName() }}
+        当前激活的和弦类型: {{ activeChordType ? getChordTypeLabel(activeChordType) : '未激活和弦类型' }}
       </div>
       
       <!-- 标准钢琴键盘 -->
@@ -117,6 +186,7 @@ import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { Chord, ChordType, ALL_NOTES } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useChordStore } from '@/stores/chordStore'
+import { getChordTypeLabel, getChordSuffix, formatNoteName } from '@/utils/chordUtils'
 
 // 使用和弦 store
 const chordStore = useChordStore()
@@ -130,9 +200,7 @@ const activeChordType = computed(() => chordStore.activeChordType)
 // 使用键盘处理器
 const { 
   isMobileDevice,
-  chordMapping,
-  pressedKeys,
-  activeKeys
+  chordMapping
 } = useKeyboardHandler();
 
 // 当前活跃的键（用于UI显示）
@@ -192,35 +260,6 @@ const mouseActiveKey = ref<string | null>(null);
 // 检查和弦类型是否激活
 function isChordTypeActive(type: ChordType): boolean {
   return activeChordType.value === type;
-}
-
-// 获取和弦后缀显示
-function getChordSuffix(type: ChordType): string {
-  switch (type) {
-    case ChordType.MAJOR: return '';  // 大三和弦没有后缀
-    case ChordType.MINOR: return 'm'; // 小三和弦显示m
-    case ChordType.DIMINISHED: return 'dim'; // 减三和弦显示dim
-    case ChordType.AUGMENTED: return 'aug'; // 增三和弦显示aug
-    case ChordType.SUSPENDED_SECOND: return 'sus2';
-    case ChordType.SUSPENDED_FOURTH: return 'sus4';
-    case ChordType.DOMINANT_SEVENTH: return '7';
-    case ChordType.MAJOR_SEVENTH: return 'M7';
-    case ChordType.MINOR_SEVENTH: return 'm7';
-    case ChordType.MINOR_MAJOR_SEVENTH: return 'mM7';
-    case ChordType.HALF_DIMINISHED_SEVENTH: return 'm7b5'; // 半减七和弦显示m7b5
-    case ChordType.SIXTH: return '6';
-    case ChordType.MINOR_SIXTH: return 'm6';
-    case ChordType.MAJOR_NINTH: return '9';
-    case ChordType.MINOR_NINTH: return 'm9';
-    default: return '';
-  }
-}
-
-// 格式化音符名称，将升降号转换为专业音乐符号的上下标
-function formatNoteName(note: string): string {
-  return note
-    .replace(/♯/g, '<sup>♯</sup>')
-    .replace(/♭/g, '<sub>♭</sub>');
 }
 
 // 获取和弦标签显示
@@ -329,31 +368,6 @@ function handleTransposeUp() {
 
 function handleTransposeDown() {
   chordStore.transposeDown()
-}
-
-// 获取当前激活的和弦类型名称
-function getActiveChordTypeName(): string {
-  if (activeChordType.value) {
-    switch (activeChordType.value) {
-      case ChordType.MAJOR: return '大三和弦';
-      case ChordType.MINOR: return '小三和弦';
-      case ChordType.DIMINISHED: return '减三和弦';
-      case ChordType.AUGMENTED: return '增三和弦';
-      case ChordType.SUSPENDED_SECOND: return '属七和弦';
-      case ChordType.SUSPENDED_FOURTH: return '属四和弦';
-      case ChordType.DOMINANT_SEVENTH: return '属七和弦';
-      case ChordType.MAJOR_SEVENTH: return '大七和弦';
-      case ChordType.MINOR_SEVENTH: return '小七和弦';
-      case ChordType.MINOR_MAJOR_SEVENTH: return '小大七和弦';
-      case ChordType.HALF_DIMINISHED_SEVENTH: return '半减七和弦';
-      case ChordType.SIXTH: return '六和弦';
-      case ChordType.MINOR_SIXTH: return '小六和弦';
-      case ChordType.MAJOR_NINTH: return '大九和弦';
-      case ChordType.MINOR_NINTH: return '小九和弦';
-      default: return '未知和弦类型';
-    }
-  }
-  return '未激活和弦类型';
 }
 </script>
 
@@ -531,16 +545,45 @@ function getActiveChordTypeName(): string {
 /* 修饰键状态显示 */
 .modifier-status {
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 15px;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 15px;
   background-color: var(--color-background);
   border-radius: 8px;
-  flex-wrap: wrap;
 }
 
+/* 和弦组样式 */
+.chord-group {
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 6px;
+}
+
+.group-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.group-label {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.group-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+/* 按钮样式调整 */
 .modifier-status button {
   padding: 5px 10px;
   border-radius: 4px;
@@ -549,12 +592,14 @@ function getActiveChordTypeName(): string {
   font-weight: bold;
   color: var(--control-text);
   cursor: pointer;
-  user-select: none; /* 禁用文字选择 */
+  user-select: none;
   transition: all 0.2s ease;
   min-width: 40px;
   text-align: center;
   border: none;
   outline: none;
+  position: relative;
+  flex: 0 0 auto;
 }
 
 .modifier-status button:hover {
@@ -566,8 +611,75 @@ function getActiveChordTypeName(): string {
   color: var(--control-text-active);
 }
 
+/* 响应式布局调整 */
+@media (max-width: 768px) {
+  .modifier-status {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .chord-group {
+    padding: 8px;
+  }
+
+  .group-row {
+    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .group-buttons {
+    gap: 6px;
+    width: 100%;
+  }
+
+  .group-label {
+    font-size: 0.75rem;
+  }
+
+  .modifier-status button {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+}
+
+/* 快捷键角标样式 */
+.shortcut-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: rgba(0, 0, 0, 0.1);  /* 改用半透明黑色背景 */
+  color: var(--color-text);  /* 使用主题文字颜色 */
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: normal;
+  opacity: 0.85;
+  border: 1px solid rgba(0, 0, 0, 0.1);  /* 添加细边框增加辨识度 */
+}
+
+/* 激活状态下的角标样式 */
+button.active .shortcut-badge {
+  background-color: rgba(255, 255, 255, 0.2);  /* 激活时使用半透明白色背景 */
+  color: var(--control-text-active);  /* 使用激活状态的文字颜色 */
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 鼠标悬停时的角标样式 */
+.modifier-status button:hover .shortcut-badge {
+  background-color: rgba(0, 0, 0, 0.15);  /* 悬停时稍微加深背景 */
+}
+
+/* 移动端隐藏快捷键提示 */
+@media (max-width: 768px) {
+  .shortcut-badge {
+    display: none;
+  }
+}
+
 .chord-info {
-  margin-left: auto;
+  margin-top: 10px;
+  align-self: flex-end;
   padding: 5px 15px;
   background-color: var(--color-accent-light);
   border-radius: 4px;
@@ -610,7 +722,6 @@ function getActiveChordTypeName(): string {
 
 .transpose-btn:hover {
   background-color: var(--control-background-hover);
-  border-color: var(--color-primary);
 }
 
 .transpose-btn:active {

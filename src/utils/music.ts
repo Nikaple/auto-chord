@@ -280,10 +280,9 @@ export function transposeNote(note: string, semitones: number): string {
 
 // 获取大调音阶的级数
 export function getScaleDegree(tonic: string, note: string): number {
-  const interval = getInterval(tonic, note);
-  // 大调音阶的音程模式：2,2,1,2,2,2,1
-  const majorScaleIntervals = [0, 2, 4, 5, 7, 9, 11];
-  return majorScaleIntervals.indexOf(interval) + 1;
+  const tonicIndex = getNoteIndex(tonic);
+  const noteIndex = getNoteIndex(note);
+  return ((noteIndex - tonicIndex + 12) % 12) + 1;
 }
 
 // 根据调性和级数获取和弦
@@ -331,42 +330,4 @@ export function getChordByDegree(tonic: string, degree: number, octave: number =
   }
   
   return { root, type };
-}
-
-// 获取和弦音程
-function getChordIntervals(type: ChordType): number[] {
-  switch (type) {
-    case ChordType.MAJOR:
-      return [0, 4, 7];  // 大三和弦：根音、大三度、纯五度
-    case ChordType.MINOR:
-      return [0, 3, 7];  // 小三和弦：根音、小三度、纯五度
-    case ChordType.DIMINISHED:
-      return [0, 3, 6];  // 减三和弦：根音、小三度、减五度
-    case ChordType.AUGMENTED:
-      return [0, 4, 8];  // 增三和弦：根音、大三度、增五度
-    case ChordType.SUSPENDED_SECOND:
-      return [0, 2, 7];  // sus2和弦：根音、大二度、纯五度
-    case ChordType.SUSPENDED_FOURTH:
-      return [0, 5, 7];  // sus4和弦：根音、纯四度、纯五度
-    case ChordType.DOMINANT_SEVENTH:
-      return [0, 4, 7, 10];  // 属七和弦：根音、大三度、纯五度、小七度
-    case ChordType.MAJOR_SEVENTH:
-      return [0, 4, 7, 11];  // 大七和弦：根音、大三度、纯五度、大七度
-    case ChordType.MINOR_SEVENTH:
-      return [0, 3, 7, 10];  // 小七和弦：根音、小三度、纯五度、小七度
-    case ChordType.MINOR_MAJOR_SEVENTH:
-      return [0, 3, 7, 11];  // 小大七和弦：根音、小三度、纯五度、大七度
-    case ChordType.HALF_DIMINISHED_SEVENTH:
-      return [0, 3, 6, 10];  // 半减七和弦：根音、小三度、减五度、小七度
-    case ChordType.SIXTH:
-      return [0, 4, 7, 9];   // 大六和弦：根音、大三度、纯五度、大六度
-    case ChordType.MINOR_SIXTH:
-      return [0, 3, 7, 9];   // 小六和弦：根音、小三度、纯五度、大六度
-    case ChordType.MAJOR_NINTH:
-      return [0, 4, 7, 11, 14];  // 大九和弦：根音、大三度、纯五度、大七度、大九度
-    case ChordType.MINOR_NINTH:
-      return [0, 3, 7, 10, 14];  // 小九和弦：根音、小三度、纯五度、小七度、大九度
-    default:
-      return [0, 4, 7];  // 默认返回大三和弦
-  }
 } 
