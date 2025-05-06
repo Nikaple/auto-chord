@@ -8,12 +8,6 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // 路由懒加载
-      component: () => import('../views/AboutView.vue')
     }
   ]
 })

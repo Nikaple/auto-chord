@@ -1,7 +1,5 @@
 <template>
   <div class="container">
-    <h1>自动和弦</h1>
-    
     <div class="main-layout">
       <div class="left-section">
         <div class="piano-container">
