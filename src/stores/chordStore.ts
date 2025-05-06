@@ -41,8 +41,6 @@ export const useChordStore = defineStore('chord', () => {
   const isAudioInitialized = ref(false)
   const activeChordType = ref<ChordType | null>(null)
   const currentInversion = ref<number>(0)  // 添加当前转位状态
-  const lastQKeyPressTime = ref<number>(0)  // 添加 Q 键双击检测
-  const qKeyDoubleClickThreshold = 300      // 双击时间阈值（毫秒）
   
   // 计算当前调性下的和弦映射
   const KEY_TO_CHORD = computed(() => {

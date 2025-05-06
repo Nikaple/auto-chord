@@ -355,7 +355,7 @@ export function getScaleDegree(tonic: string, note: string): number {
 }
 
 // 根据调性和级数获取和弦
-export function getChordByDegree(tonic: string, degree: number, octave: number = 4, forceType?: ChordType): { root: string, type: ChordType } {
+export function getChordByDegree(tonic: string, degree: number, _octave: number = 4, forceType?: ChordType): { root: string, type: ChordType } {
   // 大调音阶的和弦类型模式
   const chordTypes = [
     ChordType.MAJOR,        // I

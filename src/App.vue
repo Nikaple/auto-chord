@@ -17,11 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useKeyboardHandler } from '@/composables/useKeyboardHandler';
 import AudioInitializer from '@/components/AudioInitializer.vue'
 
-const { audioSystem } = useKeyboardHandler();
 </script>
 
 <style>

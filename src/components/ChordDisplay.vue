@@ -29,7 +29,7 @@
       
       <div class="chord-inversion">
         <span>转位：</span>
-        <span class="chord-inversion-label">{{ getInversionLabel(currentChord) }}</span>
+        <span class="chord-inversion-label">{{ getInversionLabel() }}</span>
       </div>
       
       <div class="chord-alias" v-if="getChordAlias(currentChord)">
@@ -49,7 +49,7 @@ import { ChordType, Chord } from '@/utils/music'
 import { useChordStore } from '@/stores/chordStore'
 import { computed } from 'vue'
 import { getInterval } from '@/utils/music'
-import { getChordTypeLabel, getChordSuffix, getShortNoteName } from '@/utils/chordUtils'
+import { getChordTypeLabel, getShortNoteName } from '@/utils/chordUtils'
 
 // 使用和弦 store
 const chordStore = useChordStore()
@@ -64,15 +64,9 @@ function getInversionNotation(chord: Chord | null): string {
 }
 
 // 获取转位状态说明
-function getInversionLabel(chord: Chord | null): string {
+function getInversionLabel(): string {
   const inversionLabels = ['原位', '第一转位', '第二转位', '第三转位'];
   return inversionLabels[chordStore.currentInversion] || '未知转位';
-}
-
-// 获取简短的和弦名称
-function getShortChordName(chord: Chord | null): string {
-  if (!chord) return '';
-  return `${chord.root.name}${getChordSuffix(chord.type)}`;
 }
 
 // 获取和弦级数
@@ -171,7 +165,6 @@ function getChordFunction(chord: Chord | null): string {
   
   // 找出和弦在音阶中的级数
   let degree = 0;
-  let isHalfStep = false;
   
   // 如果音程正好在音阶上
   const scaleIndex = majorScaleIntervals.indexOf(interval);
@@ -182,7 +175,6 @@ function getChordFunction(chord: Chord | null): string {
     for (let i = 0; i < majorScaleIntervals.length; i++) {
       if (majorScaleIntervals[i] > interval) {
         degree = i;
-        isHalfStep = true;
         break;
       }
     }
@@ -394,37 +386,6 @@ function getChordAlias(chord: Chord | null): string {
   }
   
   return alias;
-}
-
-// 在ChordDisplay.vue中添加和弦转位检测函数
-function getChordInversion(chord: Chord | null): string {
-  if (!chord || !chord.notes || chord.notes.length < 3) return '原位';
-  
-  // 获取和弦的根音名称
-  const rootName = chord.root.name;
-  
-  // 获取和弦的最低音符名称
-  const bassNote = chord.notes[0].name;
-  
-  // 如果最低音是根音，则是原位
-  if (bassNote === rootName) {
-    return '原位';
-  }
-  
-  // 根据和弦类型和最低音找出是哪种转位
-  const chordNotes = chord.notes.map(note => note.name);
-  const rootIndex = chordNotes.indexOf(rootName);
-  
-  // 计算转位次数（三和弦有两种转位，七和弦有三种转位）
-  const inversions = ['原位', '第一转位', '第二转位', '第三转位'];
-  
-  // 找出转位数（根据最低音的位置）
-  let inversionNum = chordNotes.length - rootIndex;
-  if (inversionNum >= chordNotes.length) {
-    inversionNum = 0; // 这是原位
-  }
-  
-  return inversions[inversionNum];
 }
 </script>
 

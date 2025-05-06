@@ -213,7 +213,6 @@ import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { Chord, ChordType, ALL_NOTES } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useChordStore } from '@/stores/chordStore'
-import { formatNoteName } from '@/utils/chordUtils'
 
 // 使用和弦 store
 const chordStore = useChordStore()

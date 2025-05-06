@@ -13,6 +13,10 @@
 - 和弦级数（罗马数字）标记功能
 - 支持和弦转位显示
 
+## 在线演示
+
+访问 [GitHub Pages 演示](https://nikaple.github.io/auto_chord/) 体验在线版本。
+
 ## 技术栈
 
 - Vue 3 + TypeScript - 前端框架
@@ -50,6 +54,19 @@ npm run build
 ```bash
 npm run test
 ```
+
+## 部署
+
+项目配置了自动部署到 GitHub Pages 的工作流。当您将代码推送到 `main` 分支时，GitHub Actions 将自动构建并部署到 GitHub Pages。
+
+### 手动部署
+
+1. 构建项目
+```bash
+npm run build
+```
+
+2. 将 `dist` 目录部署到你喜欢的静态网站托管服务
 
 ## 使用说明
 
