@@ -51,15 +51,17 @@ export enum ChordType {
   MINOR = 'minor',
   DIMINISHED = 'diminished',
   AUGMENTED = 'augmented',
-  SUSPENDED_SECOND = 'sus2',
-  SUSPENDED_FOURTH = 'sus4',
-  DOMINANT_SEVENTH = '7',
-  MAJOR_SEVENTH = 'M7',
-  MINOR_SEVENTH = 'min7',
-  HALF_DIMINISHED_SEVENTH = 'm7b5',
-  SIXTH = '6',
-  MINOR_SIXTH = 'min6',
-  NINTH = '9'
+  SUSPENDED_SECOND = 'suspended_second',
+  SUSPENDED_FOURTH = 'suspended_fourth',
+  DOMINANT_SEVENTH = 'dominant_seventh',
+  MAJOR_SEVENTH = 'major_seventh',
+  MINOR_SEVENTH = 'minor_seventh',
+  MINOR_MAJOR_SEVENTH = 'minor_major_seventh',
+  HALF_DIMINISHED_SEVENTH = 'half_diminished_seventh',
+  SIXTH = 'sixth',
+  MINOR_SIXTH = 'minor_sixth',
+  MAJOR_NINTH = 'major_ninth',
+  MINOR_NINTH = 'minor_ninth'
 }
 
 // 和弦类
@@ -143,6 +145,11 @@ export class Chord {
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 7)); // 纯五度
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 10)); // 小七度
         break;
+      case ChordType.MINOR_MAJOR_SEVENTH:
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 3)); // 小三度
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 7)); // 纯五度
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 11)); // 大七度
+        break;
       case ChordType.HALF_DIMINISHED_SEVENTH:
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 3)); // 小三度
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 6)); // 减五度
@@ -158,11 +165,17 @@ export class Chord {
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 7)); // 纯五度
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 9)); // 大六度
         break;
-      case ChordType.NINTH:
+      case ChordType.MAJOR_NINTH:
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 4)); // 大三度
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 7)); // 纯五度
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 11)); // 大七度
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 14)); // 大九度
+        break;
+      case ChordType.MINOR_NINTH:
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 3)); // 小三度
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 7)); // 纯五度
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 10)); // 小七度
-        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 14)); // 大九度（跨越八度）
+        notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 14)); // 小九度
         break;
       default:
         notes.push(this.getNoteAtInterval(rootIndex, rootOctave, 4)); // 默认大三度
@@ -209,14 +222,18 @@ export class Chord {
         return 'M7';
       case ChordType.MINOR_SEVENTH:
         return 'm7';
+      case ChordType.MINOR_MAJOR_SEVENTH:
+        return 'mM7';
       case ChordType.HALF_DIMINISHED_SEVENTH:
         return 'm7b5';
       case ChordType.SIXTH:
         return '6';
       case ChordType.MINOR_SIXTH:
         return 'm6';
-      case ChordType.NINTH:
+      case ChordType.MAJOR_NINTH:
         return '9';
+      case ChordType.MINOR_NINTH:
+        return 'm9';
       default:
         return '';
     }
@@ -314,4 +331,42 @@ export function getChordByDegree(tonic: string, degree: number, octave: number =
   }
   
   return { root, type };
+}
+
+// 获取和弦音程
+function getChordIntervals(type: ChordType): number[] {
+  switch (type) {
+    case ChordType.MAJOR:
+      return [0, 4, 7];  // 大三和弦：根音、大三度、纯五度
+    case ChordType.MINOR:
+      return [0, 3, 7];  // 小三和弦：根音、小三度、纯五度
+    case ChordType.DIMINISHED:
+      return [0, 3, 6];  // 减三和弦：根音、小三度、减五度
+    case ChordType.AUGMENTED:
+      return [0, 4, 8];  // 增三和弦：根音、大三度、增五度
+    case ChordType.SUSPENDED_SECOND:
+      return [0, 2, 7];  // sus2和弦：根音、大二度、纯五度
+    case ChordType.SUSPENDED_FOURTH:
+      return [0, 5, 7];  // sus4和弦：根音、纯四度、纯五度
+    case ChordType.DOMINANT_SEVENTH:
+      return [0, 4, 7, 10];  // 属七和弦：根音、大三度、纯五度、小七度
+    case ChordType.MAJOR_SEVENTH:
+      return [0, 4, 7, 11];  // 大七和弦：根音、大三度、纯五度、大七度
+    case ChordType.MINOR_SEVENTH:
+      return [0, 3, 7, 10];  // 小七和弦：根音、小三度、纯五度、小七度
+    case ChordType.MINOR_MAJOR_SEVENTH:
+      return [0, 3, 7, 11];  // 小大七和弦：根音、小三度、纯五度、大七度
+    case ChordType.HALF_DIMINISHED_SEVENTH:
+      return [0, 3, 6, 10];  // 半减七和弦：根音、小三度、减五度、小七度
+    case ChordType.SIXTH:
+      return [0, 4, 7, 9];   // 大六和弦：根音、大三度、纯五度、大六度
+    case ChordType.MINOR_SIXTH:
+      return [0, 3, 7, 9];   // 小六和弦：根音、小三度、纯五度、大六度
+    case ChordType.MAJOR_NINTH:
+      return [0, 4, 7, 11, 14];  // 大九和弦：根音、大三度、纯五度、大七度、大九度
+    case ChordType.MINOR_NINTH:
+      return [0, 3, 7, 10, 14];  // 小九和弦：根音、小三度、纯五度、小七度、大九度
+    default:
+      return [0, 4, 7];  // 默认返回大三和弦
+  }
 } 

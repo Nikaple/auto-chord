@@ -36,14 +36,10 @@ export const KEY_TO_DEGREE: Record<string, { degree: number, octave: number, for
 export const useChordStore = defineStore('chord', () => {
   const currentChord = ref<Raw<Chord> | null>(null)
   const currentKey = ref('C') // 当前调性，默认为C调
-  const modifiers = ref({
-    shift: false,
-    ctrl: false,
-    alt: false
-  })
   const audioSystem = new AudioSystem()
   const pressedKeys = reactive(new Set<string>())
   const isAudioInitialized = ref(false)
+  const activeChordType = ref<ChordType | null>(null)
   
   // 计算当前调性下的和弦映射
   const KEY_TO_CHORD = computed(() => {
@@ -144,44 +140,13 @@ export const useChordStore = defineStore('chord', () => {
     currentChord.value = chord ? markRaw(chord) : null
   }
   
-  // 更新修饰键状态
-  function setModifiers(newModifiers: { shift: boolean; ctrl: boolean; alt: boolean }) {
-    modifiers.value = newModifiers
-  }
-  
-  // 应用修饰符到和弦
+  // 更新和弦类型切换逻辑
   function applyModifiers(baseChord: { root: string, type: ChordType, octave?: number }): Chord {
     let type = baseChord.type;
     
-    // 组合修饰键处理 - 优先级最高
-    if (modifiers.value.shift && modifiers.value.ctrl && modifiers.value.alt) {
-      // 三个修饰键同时按下 - 减和弦
-      type = ChordType.DIMINISHED;
-    } else if (modifiers.value.shift && modifiers.value.ctrl) {
-      // 属七和弦
-      type = ChordType.DOMINANT_SEVENTH;
-    } else if (modifiers.value.shift && modifiers.value.alt) {
-      // 大七和弦
-      type = ChordType.MAJOR_SEVENTH;
-    } else if (modifiers.value.ctrl && modifiers.value.alt) {
-      // 小七和弦
-      type = ChordType.MINOR_SEVENTH;
-    }
-    // 单个修饰键处理 - 优先级较低
-    else if (modifiers.value.shift) {
-      // Shift键特殊处理：切换大小和弦类型
-      if (baseChord.type === ChordType.MAJOR) {
-        type = ChordType.MINOR;
-      } else if (baseChord.type === ChordType.MINOR) {
-        type = ChordType.MAJOR;
-      }
-      // 其他类型的和弦保持不变
-    } else if (modifiers.value.ctrl) {
-      // sus4和弦
-      type = ChordType.SUSPENDED_FOURTH;
-    } else if (modifiers.value.alt) {
-      // sus2和弦
-      type = ChordType.SUSPENDED_SECOND;
+    // 如果有激活的和弦类型，优先使用它
+    if (activeChordType.value !== null) {
+      type = activeChordType.value;
     }
     
     return new Chord(baseChord.root, baseChord.octave || 4, type);
@@ -224,12 +189,12 @@ export const useChordStore = defineStore('chord', () => {
   function handleKeyDown(event: KeyboardEvent) {
     const key = event.key.toLowerCase()
     
-    // 更新修饰键状态
-    setModifiers({
-      shift: event.shiftKey,
-      ctrl: event.ctrlKey,
-      alt: event.altKey
-    })
+    // 处理数字键 - 使用event.code来判断是否是数字键
+    if (event.code.startsWith('Digit')) {
+      const digit = event.code.slice(5); // 获取数字部分
+      handleNumberKey(digit, event.shiftKey);
+      return;
+    }
     
     // 防止重复触发
     if (pressedKeys.has(key)) return
@@ -250,27 +215,24 @@ export const useChordStore = defineStore('chord', () => {
   function handleKeyUp(event: KeyboardEvent) {
     const key = event.key.toLowerCase()
     
-    // 更新修饰键状态
-    setModifiers({
-      shift: event.shiftKey,
-      ctrl: event.ctrlKey,
-      alt: event.altKey
-    })
+    // 如果是数字键，不做任何处理
+    if (/^[1-9]$/.test(key)) {
+      return
+    }
     
     // 从按下的键集合中移除
     pressedKeys.delete(key)
     
     // 如果是和弦键
-    if (KEY_TO_DEGREE[key]) {
+    if (KEY_TO_CHORD.value[key]) {
       // 检查是否还有其他和弦键被按下
-      const remainingChordKeys = Array.from(pressedKeys).filter(k => KEY_TO_DEGREE[k])
+      const remainingChordKeys = Array.from(pressedKeys).filter(k => KEY_TO_CHORD.value[k])
       
       if (remainingChordKeys.length > 0) {
         // 播放最后一个按下的和弦
         const lastKey = remainingChordKeys[remainingChordKeys.length - 1]
-        const degreeConfig = KEY_TO_DEGREE[lastKey]
-        const chordConfig = getChordByDegree(currentKey.value, degreeConfig.degree, degreeConfig.octave)
-        const chord = applyModifiers({ ...chordConfig, octave: degreeConfig.octave })
+        const chordConfig = KEY_TO_CHORD.value[lastKey]
+        const chord = applyModifiers(chordConfig)
         playChord(chord)
       } else {
         // 没有其他和弦键被按下，停止播放
@@ -279,16 +241,91 @@ export const useChordStore = defineStore('chord', () => {
     }
   }
   
+  // 处理数字键和弦类型切换
+  function handleNumberKey(key: string, withShift: boolean = false) {
+    let newType: ChordType | null = null;
+    const currentType = activeChordType.value;
+    
+    switch (key) {
+      case '1':
+        // 1: 切换为小和弦，Shift+1: 切换为大和弦
+        if (withShift) {
+          newType = currentType === ChordType.MAJOR ? null : ChordType.MAJOR;
+        } else {
+          newType = currentType === ChordType.MINOR ? null : ChordType.MINOR;
+        }
+        break;
+      case '2':
+        // 2: 切换为sus4，Shift+2: 切换为sus2
+        if (withShift) {
+          newType = currentType === ChordType.SUSPENDED_SECOND ? null : ChordType.SUSPENDED_SECOND;
+        } else {
+          newType = currentType === ChordType.SUSPENDED_FOURTH ? null : ChordType.SUSPENDED_FOURTH;
+        }
+        break;
+      case '3':
+        // 切换小七和弦/大七和弦
+        if (withShift) {
+          newType = currentType === ChordType.MAJOR_SEVENTH ? null : ChordType.MAJOR_SEVENTH;
+        } else {
+          newType = currentType === ChordType.MINOR_SEVENTH ? null : ChordType.MINOR_SEVENTH;
+        }
+        break;
+      case '4':
+        // 切换属七和弦/小大七和弦
+        if (withShift) {
+          newType = currentType === ChordType.MINOR_MAJOR_SEVENTH ? null : ChordType.MINOR_MAJOR_SEVENTH;
+        } else {
+          newType = currentType === ChordType.DOMINANT_SEVENTH ? null : ChordType.DOMINANT_SEVENTH;
+        }
+        break;
+      case '5':
+        // 切换小六和弦/大六和弦
+        if (withShift) {
+          newType = currentType === ChordType.SIXTH ? null : ChordType.SIXTH;
+        } else {
+          newType = currentType === ChordType.MINOR_SIXTH ? null : ChordType.MINOR_SIXTH;
+        }
+        break;
+      case '6':
+        // 切换减和弦/增和弦
+        if (withShift) {
+          newType = currentType === ChordType.AUGMENTED ? null : ChordType.AUGMENTED;
+        } else {
+          newType = currentType === ChordType.DIMINISHED ? null : ChordType.DIMINISHED;
+        }
+        break;
+      case '7':
+        // 切换小九和弦/大九和弦
+        if (withShift) {
+          newType = currentType === ChordType.MAJOR_NINTH ? null : ChordType.MAJOR_NINTH;
+        } else {
+          newType = currentType === ChordType.MINOR_NINTH ? null : ChordType.MINOR_NINTH;
+        }
+        break;
+    }
+    
+    // 更新激活的和弦类型
+    activeChordType.value = newType;
+    
+    // 如果当前有和弦在播放，立即更新它
+    if (pressedKeys.size > 0) {
+      const pressedKey = Array.from(pressedKeys)[0];
+      if (pressedKey && KEY_TO_CHORD.value[pressedKey]) {
+        const chord = applyModifiers(KEY_TO_CHORD.value[pressedKey]);
+        playChord(chord);
+      }
+    }
+  }
+  
   return {
     currentChord,
     currentKey,
-    modifiers,
     pressedKeys,
     isAudioInitialized,
     KEY_TO_CHORD,
     audioSystem,
     setCurrentChord,
-    setModifiers,
     playChord,
     stopChord,
     clearChord,
@@ -298,6 +335,8 @@ export const useChordStore = defineStore('chord', () => {
     applyModifiers,
     transpose,
     transposeUp,
-    transposeDown
+    transposeDown,
+    handleNumberKey,
+    activeChordType
   }
 }) 

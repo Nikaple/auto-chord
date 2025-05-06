@@ -14,16 +14,28 @@
 
       <!-- 修饰键状态显示 -->
       <div class="modifier-status">
-        <button :class="{ active: modifiers.shift && !modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('shift')">M/m</button>
-        <button :class="{ active: modifiers.ctrl && !modifiers.shift && !modifiers.alt }" @click.prevent="setChordType('ctrl')">sus4</button>
-        <button :class="{ active: modifiers.alt && !modifiers.shift && !modifiers.ctrl }" @click.prevent="setChordType('alt')">sus2</button>
-        <button :class="{ active: modifiers.shift && modifiers.ctrl && modifiers.alt }" @click.prevent="setChordType('dim')">dim</button>
-        <button :class="{ active: modifiers.shift && modifiers.alt && !modifiers.ctrl }" @click.prevent="setChordType('M7')">M7</button>
-        <button :class="{ active: modifiers.ctrl && modifiers.alt && !modifiers.shift }" @click.prevent="setChordType('m7')">m7</button>
-        <button :class="{ active: modifiers.shift && modifiers.ctrl && !modifiers.alt }" @click.prevent="setChordType('7')">7</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MINOR) }" @click.prevent="handleNumberKey('1')">m</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MAJOR) }" @click.prevent="handleNumberKey('1', true)">M</button>
+        <button :class="{ active: isChordTypeActive(ChordType.SUSPENDED_FOURTH) }" @click.prevent="handleNumberKey('2')">sus4</button>
+        <button :class="{ active: isChordTypeActive(ChordType.SUSPENDED_SECOND) }" @click.prevent="handleNumberKey('2', true)">sus2</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MINOR_SEVENTH) }" @click.prevent="handleNumberKey('3')">m7</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MAJOR_SEVENTH) }" @click.prevent="handleNumberKey('3', true)">M7</button>
+        <button :class="{ active: isChordTypeActive(ChordType.DOMINANT_SEVENTH) }" @click.prevent="handleNumberKey('4')">7</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MINOR_MAJOR_SEVENTH) }" @click.prevent="handleNumberKey('4', true)">mM7</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MINOR_SIXTH) }" @click.prevent="handleNumberKey('5')">m6</button>
+        <button :class="{ active: isChordTypeActive(ChordType.SIXTH) }" @click.prevent="handleNumberKey('5', true)">6</button>
+        <button :class="{ active: isChordTypeActive(ChordType.DIMINISHED) }" @click.prevent="handleNumberKey('6')">dim</button>
+        <button :class="{ active: isChordTypeActive(ChordType.AUGMENTED) }" @click.prevent="handleNumberKey('6', true)">aug</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MINOR_NINTH) }" @click.prevent="handleNumberKey('7')">m9</button>
+        <button :class="{ active: isChordTypeActive(ChordType.MAJOR_NINTH) }" @click.prevent="handleNumberKey('7', true)">9</button>
         <div class="chord-info" v-if="currentChord">
           <strong>{{ getChordDisplayName(currentChord) }}</strong>
         </div>
+      </div>
+      
+      <!-- 当前和弦类型信息，仅用于调试 -->
+      <div class="debug-info" v-if="activeChordType">
+        当前激活的和弦类型: {{ getActiveChordTypeName() }}
       </div>
       
       <!-- 标准钢琴键盘 -->
@@ -86,14 +98,15 @@
     </div>
     
     <div class="keyboard-help" v-if="!isMobileDevice">
-      <p>Modifier keys for chord types:</p>
+      <p>键盘控制说明：</p>
       <ul>
-        <li><strong>Shift</strong>: Toggle Major/Minor</li>
-        <li><strong>Ctrl</strong>: sus4 chord</li>
-        <li><strong>Alt</strong>: sus2 chord</li>
-        <li><strong>Shift + Ctrl</strong>: Dominant 7th</li>
-        <li><strong>Shift + Alt</strong>: Major 7th</li>
-        <li><strong>Ctrl + Alt</strong>: Minor 7th</li>
+        <li><strong>1</strong>: 切换小和弦 / <strong>Shift+1</strong>: 切换大和弦</li>
+        <li><strong>2</strong>: 切换sus4和弦 / <strong>Shift+2</strong>: 切换sus2和弦</li>
+        <li><strong>3</strong>: 切换小七和弦 / <strong>Shift+3</strong>: 切换大七和弦</li>
+        <li><strong>4</strong>: 切换属七和弦 / <strong>Shift+4</strong>: 切换小大七和弦</li>
+        <li><strong>5</strong>: 切换小六和弦 / <strong>Shift+5</strong>: 切换大六和弦</li>
+        <li><strong>6</strong>: 切换减和弦 / <strong>Shift+6</strong>: 切换增和弦</li>
+        <li><strong>7</strong>: 切换小九和弦 / <strong>Shift+7</strong>: 切换大九和弦</li>
       </ul>
     </div>
   </div>
@@ -112,61 +125,58 @@ const currentKey = computed({
   get: () => chordStore.currentKey,
   set: (value) => chordStore.transpose(value)
 })
+const activeChordType = computed(() => chordStore.activeChordType)
 
 // 使用键盘处理器
 const { 
-  modifiers,
-  isMobileDevice
+  isMobileDevice,
+  chordMapping,
+  pressedKeys,
+  activeKeys
 } = useKeyboardHandler();
-
-// 当前修饰键状态的计算属性，使其在模板中可响应
-const shift = computed(() => modifiers.value.shift);
-const ctrl = computed(() => modifiers.value.ctrl);
-const alt = computed(() => modifiers.value.alt);
 
 // 当前活跃的键（用于UI显示）
 const activeKeysUI = computed(() => Array.from(chordStore.pressedKeys))
 
 // 阻止默认键盘事件
 function preventDefaultKeys(e: KeyboardEvent) {
-  // 阻止Alt键的默认行为
-  if (e.key === 'Alt' || e.altKey) {
+  // 阻止数字键 1-9 的默认行为
+  if (e.code.startsWith('Digit')) {
     e.preventDefault();
     return;
-  }
-  
-  // 阻止修饰键+字母的默认行为(如Ctrl+A全选, Ctrl+W关闭标签页)
-  if (e.ctrlKey && /^[a-z]$/i.test(e.key)) {
-    e.preventDefault();
-  }
-  // 阻止Alt+字母的默认行为
-  else if (e.altKey && /^[a-z]$/i.test(e.key)) {
-    e.preventDefault();
   }
 }
 
 // 挂载和卸载全局事件监听器
 onMounted(() => {
-  // 移除音频初始化相关代码
-  window.addEventListener('keydown', preventDefaultKeys, true);
-  
   // 添加事件监听器
-  window.addEventListener('keydown', chordStore.handleKeyDown);
+  const handleKeyDownWithPrevent = (e: KeyboardEvent) => {
+    preventDefaultKeys(e);  // 先阻止默认行为
+    chordStore.handleKeyDown(e);
+  };
+  
+  window.addEventListener('keydown', handleKeyDownWithPrevent);
   window.addEventListener('keyup', chordStore.handleKeyUp);
   
   // 页面失去焦点时停止所有声音，但保留和弦显示
   window.addEventListener('blur', () => {
     chordStore.stopChord();
   });
+  
+  // 保存事件处理函数引用
+  (window as any).__handleKeyDownWithPrevent = handleKeyDownWithPrevent;
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', preventDefaultKeys, true);
-  window.removeEventListener('keydown', chordStore.handleKeyDown);
+  // 使用保存的事件处理函数引用
+  window.removeEventListener('keydown', (window as any).__handleKeyDownWithPrevent);
   window.removeEventListener('keyup', chordStore.handleKeyUp);
   window.removeEventListener('blur', () => {
     chordStore.stopChord();
   });
+  
+  // 清理引用
+  delete (window as any).__handleKeyDownWithPrevent;
 });
 
 // 第三排七和弦按键
@@ -179,8 +189,10 @@ const blackKeys = ['e', 'r', 'y', 'u', 'i'];
 // 记录鼠标按下的键
 const mouseActiveKey = ref<string | null>(null);
 
-// 获取和弦映射
-const chordMapping = computed(() => chordStore.KEY_TO_CHORD);
+// 检查和弦类型是否激活
+function isChordTypeActive(type: ChordType): boolean {
+  return activeChordType.value === type;
+}
 
 // 获取和弦后缀显示
 function getChordSuffix(type: ChordType): string {
@@ -194,10 +206,12 @@ function getChordSuffix(type: ChordType): string {
     case ChordType.DOMINANT_SEVENTH: return '7';
     case ChordType.MAJOR_SEVENTH: return 'M7';
     case ChordType.MINOR_SEVENTH: return 'm7';
+    case ChordType.MINOR_MAJOR_SEVENTH: return 'mM7';
     case ChordType.HALF_DIMINISHED_SEVENTH: return 'm7b5'; // 半减七和弦显示m7b5
     case ChordType.SIXTH: return '6';
     case ChordType.MINOR_SIXTH: return 'm6';
-    case ChordType.NINTH: return '9';
+    case ChordType.MAJOR_NINTH: return '9';
+    case ChordType.MINOR_NINTH: return 'm9';
     default: return '';
   }
 }
@@ -219,42 +233,18 @@ function getChordLabel(mapping: { root: string, type: ChordType } | undefined): 
   // 基于当前修饰键状态预览和弦类型
   let previewType = mapping.type;
   
-  // 根据修饰键状态计算和弦类型
-  if (shift.value && ctrl.value) {
-    // 属七和弦 - 保持根音不变
-    previewType = ChordType.DOMINANT_SEVENTH;
-  } else if (shift.value && alt.value) {
-    // 大七和弦 - 保持根音不变
-    previewType = ChordType.MAJOR_SEVENTH;
-  } else if (ctrl.value && alt.value) {
-    // 小七和弦 - 保持根音不变
-    previewType = ChordType.MINOR_SEVENTH;
-  } else if (shift.value) {
-    // Shift: 大小性质反转
-    if (previewType === ChordType.MAJOR) {
-      previewType = ChordType.MINOR;
-    } else if (previewType === ChordType.MINOR) {
-      previewType = ChordType.MAJOR;
-    }
-  } else if (ctrl.value) {
-    // Ctrl: sus4和弦
-    previewType = ChordType.SUSPENDED_FOURTH;
-  } else if (alt.value) {
-    // Alt: sus2和弦
-    previewType = ChordType.SUSPENDED_SECOND;
+  // 如果有激活的和弦类型，优先使用它
+  if (activeChordType.value !== null) {
+    previewType = activeChordType.value;
   }
   
   return `${rootNote}${getChordSuffix(previewType)}`;
 }
 
-// 检查是否是黑键
-
 // 检查键是否活跃 - 修改为包含键盘和鼠标激活的按键
 const isKeyActive = (key: string) => {
   return activeKeysUI.value.includes(key) || mouseActiveKey.value === key;
 };
-
-// 获取音符的等价名称（例如C♯=D♭）
 
 // 鼠标按下处理函数
 function handleMouseDown(key: string, mapping: { root: string, type: ChordType } | undefined) {
@@ -294,86 +284,16 @@ function handleTouchEnd() {
   handleMouseUp();
 }
 
-// 直接设置和弦类型（通过设置对应的修饰键组合）
-function setChordType(type: string) {
-  const newModifiers = { shift: false, ctrl: false, alt: false };
+// 处理数字键点击
+function handleNumberKey(key: string, withShift: boolean = false) {
+  chordStore.handleNumberKey(key, withShift);
   
-  // 根据选择的类型设置对应的修饰键组合
-  switch(type) {
-    case 'shift': // 大/小
-      newModifiers.shift = true;
-      break;
-    case 'ctrl': // sus4
-      newModifiers.ctrl = true;
-      break;
-    case 'alt': // sus2
-      newModifiers.alt = true;
-      // 特殊处理Alt键，防止浏览器默认行为
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Alt') {
-          e.preventDefault();
-        }
-      }, { once: true });
-      break;
-    case '7': // 属七
-      newModifiers.shift = true;
-      newModifiers.ctrl = true;
-      break;
-    case 'M7': // 大七 (修改为M7)
-      newModifiers.shift = true;
-      newModifiers.alt = true;
-      // 特殊处理Alt键
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Alt') {
-          e.preventDefault();
-        }
-      }, { once: true });
-      break;
-    case 'm7': // 小七
-      newModifiers.ctrl = true;
-      newModifiers.alt = true;
-      // 特殊处理Alt键
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Alt') {
-          e.preventDefault();
-        }
-      }, { once: true });
-      break;
-    case 'dim': // 减
-      newModifiers.shift = true;
-      newModifiers.ctrl = true;
-      newModifiers.alt = true;
-      // 特殊处理Alt键
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Alt') {
-          e.preventDefault();
-        }
-      }, { once: true });
-      break;
-    default:
-      // 如果没有指定类型，则清除所有修饰键
-      break;
-  }
-  
-  // 如果当前修饰键状态与要设置的完全相同，则清除所有修饰键
-  // 这样可以通过再次点击同一个按钮来取消选择
-  if (newModifiers.shift === modifiers.value.shift &&
-      newModifiers.ctrl === modifiers.value.ctrl &&
-      newModifiers.alt === modifiers.value.alt) {
-    newModifiers.shift = false;
-    newModifiers.ctrl = false;
-    newModifiers.alt = false;
-  }
-  
-  // 更新修饰键状态
-    chordStore.setModifiers(newModifiers);
-    
-    // 如果当前有按键被按下，更新和弦
-    if (mouseActiveKey.value) {
-      const mapping = chordMapping.value[mouseActiveKey.value];
-      if (mapping) {
-        const chord = chordStore.applyModifiers(mapping);
-        chordStore.playChord(chord);
+  // 如果当前有鼠标激活的按键，更新它的和弦
+  if (mouseActiveKey.value) {
+    const mapping = chordMapping.value[mouseActiveKey.value];
+    if (mapping) {
+      const chord = chordStore.applyModifiers(mapping);
+      chordStore.playChord(chord);
     }
   }
 }
@@ -396,7 +316,6 @@ function getChordDisplayName(chord: Chord | null): string {
   return chord.name;
 }
 
-
 // 处理调性变更
 function handleKeyChange(event: Event) {
   const select = event.target as HTMLSelectElement
@@ -410,6 +329,31 @@ function handleTransposeUp() {
 
 function handleTransposeDown() {
   chordStore.transposeDown()
+}
+
+// 获取当前激活的和弦类型名称
+function getActiveChordTypeName(): string {
+  if (activeChordType.value) {
+    switch (activeChordType.value) {
+      case ChordType.MAJOR: return '大三和弦';
+      case ChordType.MINOR: return '小三和弦';
+      case ChordType.DIMINISHED: return '减三和弦';
+      case ChordType.AUGMENTED: return '增三和弦';
+      case ChordType.SUSPENDED_SECOND: return '属七和弦';
+      case ChordType.SUSPENDED_FOURTH: return '属四和弦';
+      case ChordType.DOMINANT_SEVENTH: return '属七和弦';
+      case ChordType.MAJOR_SEVENTH: return '大七和弦';
+      case ChordType.MINOR_SEVENTH: return '小七和弦';
+      case ChordType.MINOR_MAJOR_SEVENTH: return '小大七和弦';
+      case ChordType.HALF_DIMINISHED_SEVENTH: return '半减七和弦';
+      case ChordType.SIXTH: return '六和弦';
+      case ChordType.MINOR_SIXTH: return '小六和弦';
+      case ChordType.MAJOR_NINTH: return '大九和弦';
+      case ChordType.MINOR_NINTH: return '小九和弦';
+      default: return '未知和弦类型';
+    }
+  }
+  return '未激活和弦类型';
 }
 </script>
 
@@ -806,6 +750,16 @@ function handleTransposeDown() {
 /* 确保所有元素使用 border-box */
 *, *:before, *:after {
   box-sizing: border-box;
+}
+
+/* 调试信息样式 */
+.debug-info {
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .keyboard-help {

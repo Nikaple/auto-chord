@@ -92,7 +92,6 @@ export default class AudioSystem {
         release: this.defaultSettings.release,
         baseUrl: "https://tonejs.github.io/audio/salamander/",
         onload: () => {
-          console.log("钢琴采样器加载完成");
           this.samplerLoaded = true;
           
           // 设置采样器参数
