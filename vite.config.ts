@@ -6,7 +6,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [vue()],
   // 设置基本公共路径为仓库名，适用于GitHub Pages部署
-  base: '/auto_chord/',
+  base: '/auto-chord/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')

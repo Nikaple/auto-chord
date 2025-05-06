@@ -15,7 +15,7 @@
 
 ## 在线演示
 
-访问 [GitHub Pages 演示](https://nikaple.github.io/auto_chord/) 体验在线版本。
+访问 [GitHub Pages 演示](https://nikaple.github.io/auto-chord/) 体验在线版本。
 
 ## 技术栈
 
