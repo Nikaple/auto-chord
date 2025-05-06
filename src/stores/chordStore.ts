@@ -16,11 +16,11 @@ export const KEY_TO_DEGREE: Record<string, { degree: number, octave: number, for
   'l': { degree: 1, octave: 4 },      // I  (C in C major, 高八度)
   
   // 黑键 - 变化和弦
-  'e': { degree: 1.5, octave: 3, forceType: ChordType.DIMINISHED },     // ♯I/♭II (C♯dim)
-  'r': { degree: 2.5, octave: 3, forceType: ChordType.AUGMENTED },      // ♯II/♭III (D♯aug)
-  'y': { degree: 4.5, octave: 3, forceType: ChordType.DIMINISHED },     // ♯IV/♭V (F♯dim)
-  'u': { degree: 5.5, octave: 3, forceType: ChordType.DIMINISHED },     // ♯V/♭VI (G♯dim)
-  'i': { degree: 6.5, octave: 3, forceType: ChordType.MAJOR },          // ♯VI/♭VII (A♯maj)
+  'e': { degree: 1.5, octave: 3, forceType: ChordType.DIMINISHED },     // #I/bII (C#dim)
+  'r': { degree: 2.5, octave: 3, forceType: ChordType.AUGMENTED },      // #II/bIII (D#aug)
+  'y': { degree: 4.5, octave: 3, forceType: ChordType.DIMINISHED },     // #IV/bV (F#dim)
+  'u': { degree: 5.5, octave: 3, forceType: ChordType.DIMINISHED },     // #V/bVI (G#dim)
+  'i': { degree: 6.5, octave: 3, forceType: ChordType.MAJOR },          // #VI/bVII (A#maj)
   
   // 第一排按键 - 七和弦
   'z': { degree: 1, octave: 3, forceType: ChordType.MAJOR_SEVENTH },      // IM7

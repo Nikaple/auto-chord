@@ -14,8 +14,8 @@ export class Note {
   static getFrequency(note: string, octave: number): number {
     // 将音乐符号转换为标准符号
     const standardNote = note
-      .replace('♯', '#')
-      .replace('♭', 'b');
+      .replace('#', '#')
+      .replace('b', 'b');
 
     const notes: Record<string, number> = {
       'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3,
@@ -39,8 +39,8 @@ export class Note {
   get fullName(): string {
     // 将音乐符号转换为标准符号
     const standardName = this.name
-      .replace('♯', '#')
-      .replace('♭', 'b');
+      .replace('#', '#')
+      .replace('b', 'b');
     return `${standardName}${this.octave}`;
   }
 }
@@ -103,7 +103,7 @@ export class Chord {
     const allNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     
     // 找出根音在数组中的索引
-    const rootIndex = allNotes.indexOf(rootName.replace('♯', '#').replace('♭', 'b'));
+    const rootIndex = allNotes.indexOf(rootName.replace('#', '#').replace('b', 'b'));
     
     // 根据和弦类型添加其他音符
     switch (this.type) {
@@ -320,7 +320,7 @@ export class Chord {
 }
 
 // 所有音符（包括升降号）
-export const ALL_NOTES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+export const ALL_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // 获取音符在音阶中的位置（0-11）
 export function getNoteIndex(note: string): number {

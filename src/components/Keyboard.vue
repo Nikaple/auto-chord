@@ -3,13 +3,13 @@
     <div class="piano-layout">
       <!-- 调性选择器 -->
       <div class="key-selector">
-        <button class="transpose-btn" @click="handleTransposeDown">♭</button>
+        <button class="transpose-btn" @click="handleTransposeDown">b</button>
         <select v-model="currentKey" @change="handleKeyChange" class="key-select">
           <option v-for="note in ALL_NOTES" :key="note" :value="note">
             {{ note }}
           </option>
         </select>
-        <button class="transpose-btn" @click="handleTransposeUp">♯</button>
+        <button class="transpose-btn" @click="handleTransposeUp">#</button>
       </div>
 
       <!-- 修饰键状态显示 -->
@@ -165,6 +165,7 @@
             @touchstart.prevent="handleTouchStart(key, chordMapping[key])"
             @touchend.prevent="handleTouchEnd()"
             @touchcancel.prevent="handleTouchEnd()">
+            <!-- 修改为单行显示和弦 -->
             <span class="note-name" v-html="getChordLabel(chordMapping[key])"></span>
             <span class="key-label">{{ key.toUpperCase() }}</span>
           </div>
@@ -212,11 +213,10 @@ import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { Chord, ChordType, ALL_NOTES } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useChordStore } from '@/stores/chordStore'
-import { getChordTypeLabel, getChordSuffix, formatNoteName } from '@/utils/chordUtils'
+import { formatNoteName } from '@/utils/chordUtils'
 
 // 使用和弦 store
 const chordStore = useChordStore()
-const currentChord = computed(() => chordStore.currentChord)
 const currentKey = computed({
   get: () => chordStore.currentKey,
   set: (value) => chordStore.transpose(value)
@@ -291,11 +291,8 @@ function isChordTypeActive(type: ChordType): boolean {
 // 获取和弦标签显示
 function getChordLabel(mapping: { root: string, type: ChordType, octave?: number } | undefined): string {
   if (!mapping) return '';
-  
-  // 获取基础和弦信息
-  const rootNote = formatNoteName(mapping.root);
-  
-  // 基于当前修饰键状态预览和弦类型
+
+  // 获取和弦类型
   let previewType = mapping.type;
   
   // 如果有激活的和弦类型，优先使用它
@@ -306,7 +303,14 @@ function getChordLabel(mapping: { root: string, type: ChordType, octave?: number
   // 创建和弦并应用当前转位设置
   const chord = new Chord(mapping.root, mapping.octave || 4, previewType);
   chord.setInversion(chordStore.currentInversion);
-  return chord.getInversionNotation();
+  
+  // 获取完整和弦表示法
+  let fullNotation = chord.getInversionNotation();
+  
+  // 在斜杠前后添加零宽空格，允许在斜杠处折行
+  fullNotation = fullNotation.replace(/\//g, '\u200B/').replace(mapping.root, mapping.root + '\u200B');
+  
+  return fullNotation;
 }
 
 // 检查键是否活跃 - 修改为包含键盘和鼠标激活的按键
@@ -370,11 +374,11 @@ function handleNumberKey(key: string, withShift: boolean = false) {
 function getNoteFromKey(key: string): string {
   if (key === 'hidden') return '';
   const noteMap: Record<string, string> = {
-    'e': 'C♯',
-    'r': 'D♯',
-    'y': 'F♯',
-    'u': 'G♯',
-    'i': 'A♯'
+    'e': 'C#',
+    'r': 'D#',
+    'y': 'F#',
+    'u': 'G#',
+    'i': 'A#'
   };
   return noteMap[key] || '';
 }
@@ -503,10 +507,12 @@ function handleInversion(inversion: number) {
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
+  padding-top: 20px;
   padding-bottom: 20px;
   color: var(--key-text-inverted);
   transition: all 0.2s ease;
   margin-right: calc(100% / 24); /* 间距也相应调整 */
+  text-align: center; /* 添加：文本居中 */
 }
 
 .black-key:last-child {
@@ -533,8 +539,21 @@ function handleInversion(inversion: number) {
   font-weight: bold;
   font-size: 0.9rem;
   margin-bottom: 5px;
+  word-break: break-word; /* 添加此属性允许在任意字符处换行 */
+  overflow-wrap: break-word; /* 确保长单词也能换行 */
+  text-align: center; /* 添加：文本居中 */
+  width: 100%; /* 添加：确保宽度充满容器 */
+  padding: 0 2px; /* 添加：左右留点间距 */
+  line-height: 1.1; /* 添加：减小行间距 */
 }
 
+/* 黑键特殊样式 */
+.black-key .note-name {
+  font-size: 0.8rem; /* 黑键字体稍小 */
+  padding: 0 1px; /* 黑键内边距更小 */
+}
+
+/* 上标和下标样式 */
 .note-name sup {
   font-size: 0.65em;
   position: relative;
@@ -597,7 +616,7 @@ function handleInversion(inversion: number) {
   background-color: var(--color-background);
   border-radius: 8px;
   align-items: flex-start;
-  overflow-x: auto; /* 允许横向滚动 */
+  overflow-x: visible; /* 修改：PC端不需要整体滚动 */
   scrollbar-width: none; /* Firefox隐藏滚动条 */
   -ms-overflow-style: none; /* IE和Edge隐藏滚动条 */
 }
@@ -609,25 +628,26 @@ function handleInversion(inversion: number) {
 
 /* 和弦组样式 */
 .chord-group {
-  flex: 1;
-  min-width: 150px;  /* 减小最小宽度，让转位按钮组更紧凑 */
+  flex: 0 0 auto; /* 修改：防止挤压，保持固定宽度 */
+  min-width: 150px; 
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.03);
   border-radius: 6px;
+  overflow-x: auto; /* 修改：PC端允许内部横向滚动 */
+  scrollbar-width: none; /* Firefox隐藏滚动条 */
+  -ms-overflow-style: none; /* IE和Edge隐藏滚动条 */
+}
+
+/* Webkit浏览器隐藏滚动条 */
+.chord-group::-webkit-scrollbar {
+  display: none;
 }
 
 .group-row {
   display: flex;
   flex-direction: row;
   gap: 8px;
-  overflow-x: auto; /* 允许横向滚动 */
-  scrollbar-width: none; /* Firefox隐藏滚动条 */
-  -ms-overflow-style: none; /* IE和Edge隐藏滚动条 */
-}
-
-/* Webkit浏览器隐藏滚动条 */
-.group-row::-webkit-scrollbar {
-  display: none;
+  white-space: nowrap; /* 防止内容换行 */
 }
 
 .group-label {
@@ -640,21 +660,14 @@ function handleInversion(inversion: number) {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 3px 6px; /* 添加内边距确保标签显示完整 */
 }
 
 .group-buttons {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* 不要换行，保持一行 */
   gap: 6px;
-  justify-content: flex-start;  /* 改为左对齐 */
-  overflow-x: auto; /* 允许横向滚动 */
-  scrollbar-width: none; /* Firefox隐藏滚动条 */
-  -ms-overflow-style: none; /* IE和Edge隐藏滚动条 */
-}
-
-/* Webkit浏览器隐藏滚动条 */
-.group-buttons::-webkit-scrollbar {
-  display: none;
+  justify-content: flex-start; /* 左对齐 */
 }
 
 /* 按钮样式调整 */
@@ -702,11 +715,15 @@ function handleInversion(inversion: number) {
   .modifier-status {
     padding: 10px;
     gap: 8px;
+    flex-wrap: wrap !important; /* 移动端保持换行 */
+    overflow-x: visible !important; /* 修改：移动端不需要整体滚动 */
   }
 
   .chord-group {
     padding: 8px;
-    min-width: 150px;
+    min-width: auto !important;
+    flex: 0 0 auto !important;
+    overflow-x: auto !important; /* 移动端需要内部滚动 */
   }
 
   .group-row {
@@ -737,6 +754,14 @@ function handleInversion(inversion: number) {
   .keyboard-help {
     display: none;
   }
+
+  .note-name {
+    font-size: var(--font-size-xs);
+    margin-bottom: 0;
+  }
+  
+  /* 已经不需要 .note-root，删除相关样式 */
+  /* 已经不需要 .chord-type，删除相关样式 */
 }
 
 /* 调性选择器 */
@@ -818,8 +843,14 @@ function handleInversion(inversion: number) {
     font-size: var(--font-size-sm) !important;
   }
 
-  .note-name {
+  .note-name,
+  .note-root {
     font-size: 0.75rem;
+    margin-bottom: 0;
+  }
+
+  .chord-type {
+    font-size: 0.65rem;
     margin-bottom: 0;
   }
 
@@ -864,8 +895,14 @@ function handleInversion(inversion: number) {
     padding-bottom: 6px;
   }
 
-  .note-name {
-    font-size: 0.7rem;
+  .note-name,
+  .note-root {
+    font-size: var(--font-size-xs);
+    margin-bottom: 0;
+  }
+
+  .chord-type {
+    font-size: 0.6rem;
     margin-bottom: 0;
   }
 
@@ -875,7 +912,7 @@ function handleInversion(inversion: number) {
 
   .modifier-status {
     gap: 6px;
-    padding: 6px;
+    padding: 0;
     margin-bottom: 8px;
   }
 

@@ -122,7 +122,7 @@ function getChordDegree(chord: Chord | null): string {
   
   // 添加升降记号
   if (isHalfStep) {
-    roman = '♯' + roman;
+    roman = '#' + roman;
   }
   
   // 获取中文表示
@@ -228,16 +228,16 @@ function getChordFunction(chord: Chord | null): string {
       functionNotation += '<sup>7</sup>';
       break;
     case ChordType.MAJOR_SEVENTH:
-      functionNotation += '<sup>M7</sup>';
+      functionNotation += 'M<sup>7</sup>';
       break;
     case ChordType.MINOR_SEVENTH:
-      functionNotation += '<sup>m7</sup>';
+      functionNotation += 'm<sup>7</sup>';
       break;
     case ChordType.MINOR_MAJOR_SEVENTH:
-      functionNotation += '<sup>mM7</sup>';
+      functionNotation += 'mM<sup>7</sup>';
       break;
     case ChordType.HALF_DIMINISHED_SEVENTH:
-      functionNotation += '<sup>ø7</sup>';
+      functionNotation += 'ø<sup>7</sup>';
       break;
     case ChordType.SIXTH:
       functionNotation += '<sup>6</sup>';

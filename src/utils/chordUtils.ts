@@ -47,8 +47,8 @@ export function getChordSuffix(type: ChordType): string {
 // 格式化音符名称，将升降号转换为专业音乐符号的上下标
 export function formatNoteName(note: string): string {
   return note
-    .replace(/♯/g, '<sup>♯</sup>')
-    .replace(/♭/g, '<sub>♭</sub>');
+    .replace(/#/g, '<sup>#</sup>')
+    .replace(/b/g, '<sub>b</sub>');
 }
 
 // 获取简短的音符名称

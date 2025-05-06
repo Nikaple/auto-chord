@@ -50,14 +50,12 @@
   .seventh-key {
     height: calc(var(--keyboard-height-small) * 0.3) !important;
     font-size: var(--font-size-sm) !important;
-    width: calc(100% / 8) !important; /* 确保8个按钮均匀分布 */
-    padding: 4px !important;
+    width: calc(100% / 8 - 2px) !important; /* 确保8个按钮均匀分布 */
     margin: 0 2px !important;
   }
   
   .keyboard-row {
     gap: 4px !important;
-    padding: 0 4px !important;
     margin-top: 8px !important;
     overflow-x: auto !important; /* 允许横向滚动 */
     -webkit-overflow-scrolling: touch !important; /* 平滑滚动 */
@@ -73,7 +71,6 @@
     justify-content: flex-start !important;
     flex-wrap: wrap !important;
     gap: 6px !important;
-    padding: 8px !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }

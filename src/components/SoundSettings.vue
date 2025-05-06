@@ -244,7 +244,7 @@ h3 {
 
 .preset-buttons button {
   padding: 0.5rem 1rem;
-  background-color: #f5f5f5;
+  background-color: var(--color-accent);
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.9rem;
@@ -252,7 +252,7 @@ h3 {
 }
 
 .preset-buttons button:hover {
-  background-color: #eee;
+  background-color: var(--color-accent-light);
 }
 
 .sampler-loading {
