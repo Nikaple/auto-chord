@@ -3,7 +3,7 @@
     <h2>当前和弦</h2>
     
     <div v-if="currentChord" class="chord-info">
-      <div class="chord-name">{{ getShortChordName(currentChord) }}</div>
+      <div class="chord-name">{{ getInversionNotation(currentChord) }}</div>
       
       <div class="chord-notes">
         <span>音符：</span>
@@ -24,7 +24,12 @@
       
       <div class="chord-inversion">
         <span>转位：</span>
-        <span class="chord-inversion-label">{{ getChordInversion(currentChord) }}</span>
+        <span class="chord-inversion-label">{{ getInversionLabel(currentChord) }}</span>
+      </div>
+
+      <div class="chord-shortcuts">
+        <span class="shortcut-hint">Q：切换转位</span>
+        <span class="shortcut-hint">⇧+Q：重置为原位</span>
       </div>
     </div>
     
@@ -44,6 +49,20 @@ import { getChordTypeLabel, getChordSuffix, getShortNoteName } from '@/utils/cho
 // 使用和弦 store
 const chordStore = useChordStore()
 const currentChord = computed(() => chordStore.currentChord)
+
+// 获取和弦转位标记
+function getInversionNotation(chord: Chord | null): string {
+  if (!chord) return '';
+  const newChord = new Chord(chord.root.name, chord.octave, chord.type);
+  newChord.setInversion(chordStore.currentInversion);
+  return newChord.getInversionNotation();
+}
+
+// 获取转位状态说明
+function getInversionLabel(chord: Chord | null): string {
+  const inversionLabels = ['原位', '第一转位', '第二转位', '第三转位'];
+  return inversionLabels[chordStore.currentInversion] || '未知转位';
+}
 
 // 获取简短的和弦名称
 function getShortChordName(chord: Chord | null): string {
@@ -166,105 +185,57 @@ function getChordInversion(chord: Chord | null): string {
 
 <style scoped>
 .chord-display {
-  background-color: white;
+  padding: 1rem;
+  background-color: #f5f5f5;
   border-radius: 8px;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  margin-top: 0;
   margin-bottom: 1rem;
-  font-size: 1.4rem;
-  color: var(--color-dark);
 }
 
 .chord-info {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .chord-name {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: var(--color-primary);
+  color: #2c3e50;
 }
 
-.chord-notes {
+.chord-notes, .chord-type, .chord-degree, .chord-inversion {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .note {
-  background-color: var(--color-background);
-  border-radius: 4px;
+  background-color: #e0e0e0;
   padding: 0.2rem 0.5rem;
-  font-family: monospace;
-  font-weight: bold;
+  border-radius: 4px;
+  margin-right: 0.3rem;
 }
 
-.chord-type {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
+.chord-type-label, .chord-degree-label, .chord-inversion-label {
+  font-weight: 500;
+  color: #34495e;
 }
 
-.chord-type-label {
-  font-weight: bold;
-  color: var(--color-primary);
+.chord-shortcuts {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
 }
 
-.chord-degree,
-.chord-inversion {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.chord-degree-label,
-.chord-inversion-label {
-  font-weight: bold;
-  color: var(--color-primary);
+.shortcut-hint {
+  margin-right: 1rem;
+  background-color: #e0e0e0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
 }
 
 .no-chord {
-  height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
+  color: #666;
   font-style: italic;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-}
-
-/* 移动端优化 */
-@media (max-width: 768px) {
-  .chord-display {
-    max-width: 100%;
-  }
-  
-  h2 {
-    font-size: 1.2rem;
-  }
-  
-  .chord-info {
-    gap: 0.8rem;
-  }
-  
-  .chord-name {
-    font-size: 1.8rem;
-  }
-  
-  .note {
-    font-size: 0.8rem;
-  }
 }
 </style> 

@@ -70,6 +70,7 @@ export class Chord {
   type: ChordType;
   notes: Note[];
   octave: number;
+  inversion: number = 0;  // 添加转位属性
 
   constructor(rootName: string, octave: number = 4, type: ChordType = ChordType.MAJOR) {
     this.root = new Note(rootName, octave);
@@ -247,6 +248,74 @@ export class Chord {
   // 获取所有音符的名称
   get noteNames(): string[] {
     return this.notes.map(note => note.fullName);
+  }
+
+  // 获取和弦的最大转位数
+  private getMaxInversion(): number {
+    // 所有和弦都支持三个转位（0-3），三和弦的第三转位等同于原位但升高八度
+    return 3;
+  }
+
+  // 设置和弦转位
+  setInversion(inversion: number): void {
+    const maxInversion = this.getMaxInversion();
+    
+    // 确保转位数在有效范围内
+    if (inversion < 0) {
+      this.inversion = 0;
+    } else if (inversion > maxInversion) {
+      this.inversion = maxInversion;
+    } else {
+      this.inversion = inversion;
+    }
+    
+    // 重新计算音符列表
+    this.notes = this.calculateInvertedNotes();
+  }
+
+  // 循环切换转位
+  cycleInversion(): void {
+    const maxInversion = this.getMaxInversion();
+    this.setInversion((this.inversion + 1) % (maxInversion + 1));
+  }
+
+  // 重置为原位
+  resetInversion(): void {
+    this.setInversion(0);
+  }
+
+  // 计算转位后的音符列表
+  private calculateInvertedNotes(): Note[] {
+    if (this.inversion === 0) {
+      return this.calculateChordNotes();
+    }
+
+    const baseNotes = this.calculateChordNotes();
+    const invertedNotes = [...baseNotes];
+    
+    // 对于三和弦的第三转位，等同于原位但所有音符升高八度
+    if (baseNotes.length === 3 && this.inversion === 3) {
+      return baseNotes.map(note => new Note(note.name, note.octave + 1));
+    }
+    
+    // 将指定数量的低音音符移动到高八度
+    for (let i = 0; i < this.inversion; i++) {
+      const note = invertedNotes.shift();
+      if (note) {
+        invertedNotes.push(new Note(note.name, note.octave + 1));
+      }
+    }
+    
+    return invertedNotes;
+  }
+
+  // 获取转位标记（如 C/E 表示 C 大三和弦的第一转位）
+  getInversionNotation(): string {
+    // 如果是原位或三和弦的第三转位（高八度原位），直接返回和弦名称
+    if (this.inversion === 0 || (this.notes.length === 3 && this.inversion === 3)) {
+      return this.name;
+    }
+    return `${this.name}/${this.notes[0].name}`;
   }
 }
 

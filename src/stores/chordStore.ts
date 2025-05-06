@@ -40,6 +40,9 @@ export const useChordStore = defineStore('chord', () => {
   const pressedKeys = reactive(new Set<string>())
   const isAudioInitialized = ref(false)
   const activeChordType = ref<ChordType | null>(null)
+  const currentInversion = ref<number>(0)  // 添加当前转位状态
+  const lastQKeyPressTime = ref<number>(0)  // 添加 Q 键双击检测
+  const qKeyDoubleClickThreshold = 300      // 双击时间阈值（毫秒）
   
   // 计算当前调性下的和弦映射
   const KEY_TO_CHORD = computed(() => {
@@ -149,7 +152,10 @@ export const useChordStore = defineStore('chord', () => {
       type = activeChordType.value;
     }
     
-    return new Chord(baseChord.root, baseChord.octave || 4, type);
+    const chord = new Chord(baseChord.root, baseChord.octave || 4, type);
+    // 应用当前的转位设置
+    chord.setInversion(currentInversion.value);
+    return chord;
   }
   
   // 播放和弦
@@ -185,9 +191,26 @@ export const useChordStore = defineStore('chord', () => {
     currentChord.value = null
   }
   
+  // 处理和弦转位
+  function handleInversion(isShiftKey: boolean = false) {
+    if (isShiftKey) {
+      // Shift+Q：重置为原位
+      currentInversion.value = 0;
+    } else {
+      // Q：循环切换转位
+      currentInversion.value = (currentInversion.value + 1) % 4;
+    }
+  }
+  
   // 处理键盘按下事件
   function handleKeyDown(event: KeyboardEvent) {
     const key = event.key.toLowerCase()
+    
+    // 处理 Q 键的转位功能
+    if (key === 'q') {
+      handleInversion(event.shiftKey);
+      return;
+    }
     
     // 处理数字键 - 使用event.code来判断是否是数字键
     if (event.code.startsWith('Digit')) {
@@ -208,6 +231,10 @@ export const useChordStore = defineStore('chord', () => {
     
     // 应用修饰符并播放和弦
     const chord = applyModifiers(chordConfig)
+    if (currentChord.value && currentChord.value.inversion > 0) {
+      // 如果当前有转位设置，应用到新和弦
+      chord.setInversion(currentChord.value.inversion);
+    }
     playChord(chord)
   }
   
@@ -337,6 +364,8 @@ export const useChordStore = defineStore('chord', () => {
     transposeUp,
     transposeDown,
     handleNumberKey,
-    activeChordType
+    activeChordType,
+    handleInversion,
+    currentInversion  // 导出当前转位状态
   }
 }) 

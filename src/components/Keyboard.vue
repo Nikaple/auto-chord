@@ -96,6 +96,39 @@
             </div>
           </div>
         </div>
+
+        <!-- 转位按钮组 -->
+        <div class="chord-group">
+          <div class="group-row">
+            <div class="group-label">转位</div>
+            <div class="group-buttons">
+              <button 
+                :class="{ active: chordStore.currentInversion === 0 }" 
+                @click="handleInversion(0)">
+                原位
+                <span class="shortcut-badge">⇧+Q</span>
+              </button>
+              <button 
+                :class="{ active: chordStore.currentInversion === 1 }" 
+                @click="handleInversion(1)">
+                第一转位
+                <span class="shortcut-badge">Q</span>
+              </button>
+              <button 
+                :class="{ active: chordStore.currentInversion === 2 }" 
+                @click="handleInversion(2)">
+                第二转位
+                <span class="shortcut-badge">Q</span>
+              </button>
+              <button 
+                :class="{ active: chordStore.currentInversion === 3 }" 
+                @click="handleInversion(3)">
+                第三转位
+                <span class="shortcut-badge">Q</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- 标准钢琴键盘 -->
@@ -256,7 +289,7 @@ function isChordTypeActive(type: ChordType): boolean {
 }
 
 // 获取和弦标签显示
-function getChordLabel(mapping: { root: string, type: ChordType } | undefined): string {
+function getChordLabel(mapping: { root: string, type: ChordType, octave?: number } | undefined): string {
   if (!mapping) return '';
   
   // 获取基础和弦信息
@@ -270,7 +303,10 @@ function getChordLabel(mapping: { root: string, type: ChordType } | undefined): 
     previewType = activeChordType.value;
   }
   
-  return `${rootNote}${getChordSuffix(previewType)}`;
+  // 创建和弦并应用当前转位设置
+  const chord = new Chord(mapping.root, mapping.octave || 4, previewType);
+  chord.setInversion(chordStore.currentInversion);
+  return chord.getInversionNotation();
 }
 
 // 检查键是否活跃 - 修改为包含键盘和鼠标激活的按键
@@ -355,6 +391,19 @@ function handleTransposeUp() {
 
 function handleTransposeDown() {
   chordStore.transposeDown()
+}
+
+// 添加转位处理函数
+function handleInversion(inversion: number) {
+  if (inversion === 0) {
+    // 重置为原位
+    chordStore.handleInversion(true);
+  } else {
+    // 设置到指定转位
+    while (chordStore.currentInversion !== inversion) {
+      chordStore.handleInversion(false);
+    }
+  }
 }
 </script>
 
@@ -865,5 +914,25 @@ button.active .shortcut-badge {
   background-color: #f0f0f0;
   padding: 0.5rem;
   border-radius: 4px;
+}
+
+/* 转位按钮组样式 */
+.chord-group:last-child {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 转位按钮激活状态 */
+.group-buttons button.active {
+  background-color: var(--control-background-active);
+  color: var(--control-text-active);
+}
+
+/* 快捷键提示样式 */
+.shortcut-badge {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-left: 4px;
 }
 </style> 
