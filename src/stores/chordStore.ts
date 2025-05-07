@@ -124,8 +124,16 @@ export const useChordStore = defineStore('chord', () => {
     }
 
     try {
-      const success = await audioSystem.init();
-      if (success && audioSystem.isSamplerLoaded()) {
+      const initSuccess = await audioSystem.init();
+      if (!initSuccess) {
+        console.error('Failed to initialize audio system');
+        return false;
+      }
+      
+      // 等待采样器完全加载
+      const loadSuccess = await audioSystem.waitForSamplerLoad();
+      
+      if (loadSuccess && audioSystem.isSamplerLoaded()) {
         isAudioInitialized.value = true;
         return true;
       }
@@ -162,19 +170,22 @@ export const useChordStore = defineStore('chord', () => {
       console.warn('Audio system not initialized');
       return;
     }
+    
     if (!audioSystem.isSamplerLoaded()) {
       console.warn('Audio system not ready');
-      // 尝试重新初始化
-      initAudio().then(success => {
-        if (success) {
-          audioSystem.playChord(chord);
-          currentChord.value = chord;
-        }
-      });
+      // 不再尝试重新初始化，因为这可能导致竞态条件
+      // 只有在音频系统完全加载后才能播放和弦
       return;
     }
-    audioSystem.playChord(chord);
-    currentChord.value = chord;
+    
+    try {
+      audioSystem.playChord(chord);
+      currentChord.value = markRaw(chord);
+    } catch (error) {
+      console.error('Failed to play chord:', error);
+      // 如果出现错误，尝试重新初始化
+      isAudioInitialized.value = false;
+    }
   }
   
   // 停止播放
@@ -346,10 +357,10 @@ export const useChordStore = defineStore('chord', () => {
   return {
     currentChord,
     currentKey,
+    audioSystem,
     pressedKeys,
     isAudioInitialized,
     KEY_TO_CHORD,
-    audioSystem,
     setCurrentChord,
     playChord,
     stopChord,

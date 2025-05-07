@@ -16,6 +16,7 @@ export default class AudioSystem {
   private compressor: Tone.Compressor;
   private samplerLoaded = false;
   private activeNotes: Set<string> = new Set();
+  private samplerLoadPromise: Promise<boolean> | null = null;
   
   private defaultSettings: AudioSettings = {
     volume: 0.7,
@@ -46,65 +47,79 @@ export default class AudioSystem {
 
   public async init() {
     await Tone.start()
-    await this.initSampler()
-    this.applySettings(this.defaultSettings)
-    this.samplerLoaded = true
-    return true;
+    const success = await this.initSampler()
+    if (success) {
+      this.applySettings(this.defaultSettings)
+      return true
+    }
+    return false
   }
 
   // 初始化采样器
   private async initSampler() {
-    try {
-      // 加载钢琴采样
-      this.sampler = new Tone.Sampler({
-        urls: {
-          "A0": "A0.mp3",
-          "C1": "C1.mp3",
-          "D#1": "Ds1.mp3",
-          "F#1": "Fs1.mp3",
-          "A1": "A1.mp3",
-          "C2": "C2.mp3",
-          "D#2": "Ds2.mp3",
-          "F#2": "Fs2.mp3",
-          "A2": "A2.mp3",
-          "C3": "C3.mp3",
-          "D#3": "Ds3.mp3",
-          "F#3": "Fs3.mp3",
-          "A3": "A3.mp3",
-          "C4": "C4.mp3",
-          "D#4": "Ds4.mp3",
-          "F#4": "Fs4.mp3",
-          "A4": "A4.mp3",
-          "C5": "C5.mp3",
-          "D#5": "Ds5.mp3",
-          "F#5": "Fs5.mp3",
-          "A5": "A5.mp3",
-          "C6": "C6.mp3",
-          "D#6": "Ds6.mp3",
-          "F#6": "Fs6.mp3",
-          "A6": "A6.mp3",
-          "C7": "C7.mp3",
-          "D#7": "Ds7.mp3",
-          "F#7": "Fs7.mp3",
-          "A7": "A7.mp3",
-          "C8": "C8.mp3"
-        },
-        release: this.defaultSettings.release,
-        baseUrl: "https://tonejs.github.io/audio/salamander/",
-        onload: () => {
-          this.samplerLoaded = true;
-          
-          // 设置采样器参数
-          if (this.sampler) {
-            this.sampler.volume.value = Tone.gainToDb(this.defaultSettings.volume);
-            this.sampler.connect(this.compressor);
-          }
-        }
-      });
-    } catch (error) {
-      console.error("采样器加载失败:", error);
-      this.samplerLoaded = false;
+    // 如果已经有一个进行中的加载过程，直接返回该Promise
+    if (this.samplerLoadPromise) {
+      return this.samplerLoadPromise;
     }
+    
+    this.samplerLoadPromise = new Promise<boolean>((resolve) => {
+      try {
+        // 加载钢琴采样
+        this.sampler = new Tone.Sampler({
+          urls: {
+            "A0": "A0.mp3",
+            "C1": "C1.mp3",
+            "D#1": "Ds1.mp3",
+            "F#1": "Fs1.mp3",
+            "A1": "A1.mp3",
+            "C2": "C2.mp3",
+            "D#2": "Ds2.mp3",
+            "F#2": "Fs2.mp3",
+            "A2": "A2.mp3",
+            "C3": "C3.mp3",
+            "D#3": "Ds3.mp3",
+            "F#3": "Fs3.mp3",
+            "A3": "A3.mp3",
+            "C4": "C4.mp3",
+            "D#4": "Ds4.mp3",
+            "F#4": "Fs4.mp3",
+            "A4": "A4.mp3",
+            "C5": "C5.mp3",
+            "D#5": "Ds5.mp3",
+            "F#5": "Fs5.mp3",
+            "A5": "A5.mp3",
+            "C6": "C6.mp3",
+            "D#6": "Ds6.mp3",
+            "F#6": "Fs6.mp3",
+            "A6": "A6.mp3",
+            "C7": "C7.mp3",
+            "D#7": "Ds7.mp3",
+            "F#7": "Fs7.mp3",
+            "A7": "A7.mp3",
+            "C8": "C8.mp3"
+          },
+          release: this.defaultSettings.release,
+          baseUrl: "https://tonejs.github.io/audio/salamander/",
+          onload: () => {
+            this.samplerLoaded = true;
+            
+            // 设置采样器参数
+            if (this.sampler) {
+              this.sampler.volume.value = Tone.gainToDb(this.defaultSettings.volume);
+              this.sampler.connect(this.compressor);
+            }
+            
+            resolve(true);
+          }
+        });
+      } catch (error) {
+        console.error("采样器加载失败:", error);
+        this.samplerLoaded = false;
+        resolve(false);
+      }
+    });
+
+    return this.samplerLoadPromise;
   }
 
   // 应用音频设置
@@ -161,6 +176,12 @@ export default class AudioSystem {
       return;
     }
 
+    // 确保采样器真的存在
+    if (!this.sampler) {
+      console.warn('Sampler is null, cannot play chord');
+      return;
+    }
+
     // 停止当前活跃的音符以避免叠加
     this.stopActiveNotes();
     
@@ -172,7 +193,7 @@ export default class AudioSystem {
     
     // 播放和弦
     const velocity = 0.5 + (this.defaultSettings.dynamics * 0.5);
-    this.sampler?.triggerAttackRelease(noteNames, duration, undefined, velocity);
+    this.sampler.triggerAttackRelease(noteNames, duration, undefined, velocity);
   }
 
   // 停止特定音符
@@ -215,5 +236,14 @@ export default class AudioSystem {
   // 检查采样器是否已加载
   isSamplerLoaded(): boolean {
     return this.samplerLoaded && this.sampler !== null;
+  }
+  
+  // 等待采样器加载完成
+  async waitForSamplerLoad(): Promise<boolean> {
+    if (this.samplerLoaded) return true;
+    if (this.samplerLoadPromise) {
+      return this.samplerLoadPromise;
+    }
+    return false;
   }
 } 

@@ -1,17 +1,6 @@
 <template>
   <div class="keyboard-container">
     <div class="piano-layout">
-      <!-- 调性选择器 -->
-      <div class="key-selector">
-        <button class="transpose-btn" @click="handleTransposeDown">b</button>
-        <select v-model="currentKey" @change="handleKeyChange" class="key-select">
-          <option v-for="note in ALL_NOTES" :key="note" :value="note">
-            {{ note }}
-          </option>
-        </select>
-        <button class="transpose-btn" @click="handleTransposeUp">#</button>
-      </div>
-
       <!-- 修饰键状态显示 -->
       <div class="modifier-status">
         <!-- 三和弦组 -->
@@ -96,7 +85,7 @@
             </div>
           </div>
         </div>
-
+        
         <!-- 转位按钮组 -->
         <div class="chord-group">
           <div class="group-row">
@@ -125,6 +114,30 @@
                 @click="handleInversion(3)">
                 转3
                 <span class="shortcut-badge">Q</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 调性选择器（重新设计） -->
+        <div class="chord-group">
+          <div class="group-row">
+            <div class="group-label">调性</div>
+            <div class="group-buttons key-selector">
+              <button 
+                class="control-btn" 
+                @click="handleTransposeDown">
+                ♭
+              </button>
+              <select v-model="currentKey" @change="handleKeyChange" class="key-select">
+                <option v-for="note in ALL_NOTES" :key="note" :value="note">
+                  {{ note }}
+                </option>
+              </select>
+              <button 
+                class="control-btn" 
+                @click="handleTransposeUp">
+                ♯
               </button>
             </div>
           </div>
@@ -610,6 +623,7 @@ function handleInversion(inversion: number) {
   flex-direction: row;
   flex-wrap: wrap;
   gap: 10px;
+  width: 100%;
   margin-bottom: 15px;
   padding: 15px;
   background-color: var(--color-background);
@@ -644,7 +658,6 @@ function handleInversion(inversion: number) {
 
 .group-row {
   display: flex;
-  flex-direction: row;
   gap: 8px;
   white-space: nowrap; /* 防止内容换行 */
 }
@@ -686,6 +699,8 @@ function handleInversion(inversion: number) {
   outline: none;
   position: relative;
   flex: 0 0 auto;
+  -webkit-tap-highlight-color: transparent; /* 移除iOS点击高亮 */
+  touch-action: manipulation; /* 优化触摸行为 */
 }
 
 .modifier-status button:hover {
@@ -763,46 +778,56 @@ function handleInversion(inversion: number) {
   /* 已经不需要 .chord-type，删除相关样式 */
 }
 
-/* 调性选择器 */
+/* 修改调性选择器样式，统一风格 */
 .key-selector {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  margin-bottom: 16px;
   user-select: none; /* 禁用文字选择 */
 }
 
 .key-select {
-  padding: 8px 16px;
-  font-size: 1.2rem;
-  border: 2px solid var(--color-border);
+  padding: 4px 8px;
+  font-size: 0.85rem;
   border-radius: 4px;
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color: var(--control-background);
+  color: var(--control-text);
+  border: none;
+  outline: none;
   cursor: pointer;
+  transition: all 0.2s ease;
+  height: 30px;
+  min-width: 50px;
+  text-align: center;
 }
 
-.transpose-btn {
-  padding: 8px 16px;
-  font-size: 1.2rem;
-  border: 2px solid var(--color-border);
+.control-btn {
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  font-weight: bolder;
   border-radius: 4px;
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color: var(--control-background);
+  color: var(--control-text);
+  border: none;
+  outline: none;
   cursor: pointer;
-  user-select: none; /* 禁用文字选择 */
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  min-width: 30px;
+  text-align: center;
 }
 
-.transpose-btn:hover {
+.control-btn:hover {
   background-color: var(--control-background-hover);
 }
 
-.transpose-btn:active {
+.control-btn:active {
   transform: translateY(1px);
   background-color: var(--control-background-active);
-  color: var(--control-text-active);
+}
+
+/* 移除旧的调性选择器样式 */
+.transpose-btn {
+  display: none;
 }
 
 /* 响应式布局 */
@@ -866,6 +891,14 @@ function handleInversion(inversion: number) {
     padding: 4px 10px;
     font-size: 0.8rem;
   }
+
+  .key-select,
+  .control-btn {
+    padding: 3px 6px;
+    font-size: var(--font-size-sm);
+    min-width: 28px;
+    height: 32px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -928,13 +961,12 @@ function handleInversion(inversion: number) {
 
   .key-selector {
     gap: 4px;
-    margin-bottom: 8px;
   }
 
   .key-select,
-  .transpose-btn {
+  .control-btn {
     padding: 4px 8px;
-    font-size: 1rem;
+    font-size: var(--font-size-sm);
   }
 }
 
