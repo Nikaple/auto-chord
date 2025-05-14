@@ -5,8 +5,8 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  // 设置基本公共路径为仓库名，适用于GitHub Pages部署
-  base: '/auto-chord/',
+  // 根据环境动态设置 base URL
+  base: process.env.NODE_ENV === 'production' && process.env.GITHUB_PAGES ? '/auto-chord/' : '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
