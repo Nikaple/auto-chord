@@ -41,6 +41,7 @@ export const useChordStore = defineStore('chord', () => {
   const isAudioInitialized = ref(false)
   const activeChordType = ref<ChordType | null>(null)
   const currentInversion = ref<number>(0)  // 添加当前转位状态
+  const octaveOffset = ref<number>(0)  // 添加八度偏移状态
   
   // 计算当前调性下的和弦映射
   const KEY_TO_CHORD = computed(() => {
@@ -70,12 +71,17 @@ export const useChordStore = defineStore('chord', () => {
             adjustedOctave = config.octave;
           }
         } else {
-          // C调到F#调的情况保持不变
-          if (chordRootIndex < currentKeyIndex) {
+          // C调到F#调的情况，仅在根音与当前调音高差大于等于7个半音时才升高八度
+          // 这样从C到C#/Db的时候就不会升高八度
+          if (chordRootIndex < currentKeyIndex && 
+             (currentKeyIndex - chordRootIndex >= 7 || chordRootIndex + 12 - currentKeyIndex <= 5)) {
             adjustedOctave = config.octave + 1;
           }
         }
       }
+
+      // 应用全局八度偏移
+      adjustedOctave += octaveOffset.value;
 
       mapping[key] = { 
         ...chord, 
@@ -89,15 +95,27 @@ export const useChordStore = defineStore('chord', () => {
   // 转调函数
   function transpose(newKey: string) {
     if (ALL_NOTES.includes(newKey)) {
+      const oldKey = currentKey.value;
       currentKey.value = newKey;
+      
       // 如果有正在播放的和弦，更新它
-      if (currentChord.value) {
+      if (currentChord.value && pressedKeys.size > 0) {
+        // 使用KEY_TO_CHORD计算重新映射后的和弦，而不是手动构建
         const pressedKey = Array.from(pressedKeys)[0];
-        if (pressedKey && KEY_TO_DEGREE[pressedKey]) {
-          const degree = KEY_TO_DEGREE[pressedKey].degree;
-          const octave = KEY_TO_DEGREE[pressedKey].octave;
-          const newChord = getChordByDegree(currentKey.value, degree, octave);
-          playChord(new Chord(newChord.root, octave, newChord.type));
+        if (pressedKey && KEY_TO_CHORD.value[pressedKey]) {
+          const chord = applyModifiers(KEY_TO_CHORD.value[pressedKey]);
+          
+          // 记录转调前后八度的变化
+          console.log('转调:', {
+            from: oldKey,
+            to: newKey,
+            key: pressedKey,
+            previousOctave: currentChord.value.octave,
+            newOctave: chord.octave,
+            notes: chord.noteNames
+          });
+          
+          playChord(chord);
         }
       }
     }
@@ -158,7 +176,9 @@ export const useChordStore = defineStore('chord', () => {
       type = activeChordType.value;
     }
     
+    // 使用基础和弦提供的八度，这个八度已经包含了全局八度偏移
     const chord = new Chord(baseChord.root, baseChord.octave || 4, type);
+    
     // 应用当前的转位设置
     chord.setInversion(currentInversion.value);
     return chord;
@@ -214,6 +234,18 @@ export const useChordStore = defineStore('chord', () => {
   // 处理键盘按下事件
   function handleKeyDown(event: KeyboardEvent) {
     const key = event.key.toLowerCase()
+    
+    // 处理八度控制快捷键
+    if (event.key === 'PageUp') {
+      octaveUp();
+      return;
+    } else if (event.key === 'PageDown') {
+      octaveDown();
+      return;
+    } else if (event.key === 'Home') {
+      resetOctave();
+      return;
+    }
     
     // 处理 Q 键的转位功能
     if (key === 'q') {
@@ -354,6 +386,49 @@ export const useChordStore = defineStore('chord', () => {
     }
   }
   
+  // 处理八度偏移
+  function octaveUp() {
+    // 限制最大偏移为+2
+    if (octaveOffset.value < 2) {
+      octaveOffset.value += 1;
+      // 如果当前有和弦在播放，立即更新它
+      updateCurrentPlayingChord();
+    }
+  }
+  
+  function octaveDown() {
+    // 限制最小偏移为-2
+    if (octaveOffset.value > -2) {
+      octaveOffset.value -= 1;
+      // 如果当前有和弦在播放，立即更新它
+      updateCurrentPlayingChord();
+    }
+  }
+  
+  function resetOctave() {
+    // 重置八度偏移
+    octaveOffset.value = 0;
+    // 如果当前有和弦在播放，立即更新它
+    updateCurrentPlayingChord();
+  }
+  
+  // 更新当前播放的和弦（供八度变更和其他全局变更使用）
+  function updateCurrentPlayingChord() {
+    if (pressedKeys.size > 0) {
+      const pressedKey = Array.from(pressedKeys)[0];
+      if (pressedKey && KEY_TO_CHORD.value[pressedKey]) {
+        console.log('更新当前和弦:', {
+          pressedKey,
+          octaveOffset: octaveOffset.value,
+          chordConfig: KEY_TO_CHORD.value[pressedKey]
+        });
+        
+        const chord = applyModifiers(KEY_TO_CHORD.value[pressedKey]);
+        playChord(chord);
+      }
+    }
+  }
+  
   return {
     currentChord,
     currentKey,
@@ -375,6 +450,10 @@ export const useChordStore = defineStore('chord', () => {
     handleNumberKey,
     activeChordType,
     handleInversion,
-    currentInversion  // 导出当前转位状态
+    currentInversion,  // 导出当前转位状态
+    octaveOffset,      // 导出当前八度偏移状态
+    octaveUp,          // 导出八度提升方法
+    octaveDown,        // 导出八度降低方法
+    resetOctave        // 导出八度重置方法
   }
 }) 

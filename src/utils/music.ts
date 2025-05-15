@@ -41,7 +41,9 @@ export class Note {
     const standardName = this.name
       .replace('#', '#')
       .replace('b', 'b');
-    return `${standardName}${this.octave}`;
+    // 使用偏好的记号格式
+    const preferredName = getPreferredNotation(standardName);
+    return `${preferredName}${this.octave}`;
   }
 }
 
@@ -77,6 +79,14 @@ export class Chord {
     this.type = type;
     this.octave = octave;
     this.notes = this.calculateChordNotes();
+    
+    // 添加日志用于调试八度
+    console.log('创建和弦:', {
+      rootName,
+      octave,
+      type,
+      notes: this.noteNames
+    });
   }
 
   // 获取和弦的音符名称数组
@@ -95,15 +105,32 @@ export class Chord {
 
   // 计算和弦包含的音符
   private calculateChordNotes(): Note[] {
-    const notes: Note[] = [this.root];
+    // 首先确保根音使用了correct的octave
+    const rootWithCorrectOctave = new Note(this.root.name, this.octave);
+    const notes: Note[] = [rootWithCorrectOctave];
+    
     const rootName = this.root.name;
-    const rootOctave = this.root.octave;
+    const rootOctave = this.octave; // 使用和弦的八度，而不是根音的八度
     
     // 所有音符名称
     const allNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     
+    // 将降号形式转换为升号形式以便查找索引
+    const normalizedRoot = rootName
+      .replace('Db', 'C#')
+      .replace('Eb', 'D#')
+      .replace('Gb', 'F#')
+      .replace('Ab', 'G#')
+      .replace('Bb', 'A#');
+    
     // 找出根音在数组中的索引
-    const rootIndex = allNotes.indexOf(rootName.replace('#', '#').replace('b', 'b'));
+    const rootIndex = allNotes.indexOf(normalizedRoot);
+    
+    if (rootIndex === -1) {
+      console.error('无效的根音:', rootName, 'normalized:', normalizedRoot);
+      // 如果找不到根音，返回只有根音的和弦
+      return notes;
+    }
     
     // 根据和弦类型添加其他音符
     switch (this.type) {
@@ -194,12 +221,16 @@ export class Chord {
     let newIndex = (rootIndex + semitones) % 12;
     let newOctave = rootOctave + Math.floor((rootIndex + semitones) / 12);
     
-    return new Note(allNotes[newIndex], newOctave);
+    // 获取音符名称，并转换为偏好的记号格式
+    const noteName = allNotes[newIndex];
+    const preferredNoteName = getPreferredNotation(noteName);
+    
+    return new Note(preferredNoteName, newOctave);
   }
   
   // 获取和弦名称
   get name(): string {
-    return `${this.root.name}${this.getChordSuffix()}`;
+    return `${getPreferredNotation(this.root.name)}${this.getChordSuffix()}`;
   }
   
   // 获取和弦后缀
@@ -313,25 +344,49 @@ export class Chord {
   getInversionNotation(): string {
     // 如果是原位或三和弦的第三转位（高八度原位），直接返回和弦名称
     if (this.inversion === 0 || (this.notes.length === 3 && this.inversion === 3)) {
-      return this.name;
+      // 使用偏好的记号显示和弦名称
+      return `${getPreferredNotation(this.root.name)}${this.getChordSuffix()}`;
     }
-    return `${this.name}/${this.notes[0].name}`;
+    // 使用偏好的记号显示和弦和低音
+    return `${getPreferredNotation(this.root.name)}${this.getChordSuffix()}/${getPreferredNotation(this.notes[0].name)}`;
   }
 }
 
 // 所有音符（包括升降号）
 export const ALL_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-// 获取音符在音阶中的位置（0-11）
-export function getNoteIndex(note: string): number {
-  return ALL_NOTES.indexOf(note);
+// 音符偏好的显示方式，一些音符更常用降号形式表示
+export const PREFERRED_NOTATION: Record<string, string> = {
+  'C#': 'Db',
+  'D#': 'Eb',
+  'F#': 'Gb',
+  'G#': 'Ab',
+  'A#': 'Bb'
+};
+
+// 将音符名称转换为偏好的记号格式
+export function getPreferredNotation(note: string): string {
+  if (PREFERRED_NOTATION[note]) {
+    return PREFERRED_NOTATION[note];
+  }
+  return note;
 }
 
-// 根据位置获取音符
+// 获取音符在音阶中的位置（0-11）
+export function getNoteIndex(note: string): number {
+  // 如果是降号形式，先转换为升号形式以便查找索引
+  const normalizedNote = note.replace('Db', 'C#').replace('Eb', 'D#')
+                             .replace('Gb', 'F#').replace('Ab', 'G#')
+                             .replace('Bb', 'A#');
+  return ALL_NOTES.indexOf(normalizedNote);
+}
+
+// 根据位置获取音符，使用偏好的记号
 export function getNoteByIndex(index: number): string {
   // 确保索引在0-11范围内
   const normalizedIndex = ((index % 12) + 12) % 12;
-  return ALL_NOTES[normalizedIndex];
+  const note = ALL_NOTES[normalizedIndex];
+  return getPreferredNotation(note);
 }
 
 // 计算音程

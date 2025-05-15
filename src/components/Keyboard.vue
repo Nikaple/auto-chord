@@ -119,6 +119,37 @@
           </div>
         </div>
         
+        <!-- 添加八度控制按钮组 -->
+        <div class="chord-group">
+          <div class="group-row">
+            <div class="group-label">八度</div>
+            <div class="group-buttons octave-controls">
+              <div class="octave-display">
+                <span v-if="chordStore.octaveOffset > 0">+{{ chordStore.octaveOffset }}</span>
+                <span v-else-if="chordStore.octaveOffset < 0">{{ chordStore.octaveOffset }}</span>
+                <span v-else>0</span>
+              </div>
+              <button 
+                class="control-btn" 
+                @click="handleOctaveDown"
+                :disabled="chordStore.octaveOffset <= -2">
+                -1
+              </button>
+              <button 
+                class="control-btn" 
+                @click="handleOctaveReset">
+                重置
+              </button>
+              <button 
+                class="control-btn" 
+                @click="handleOctaveUp"
+                :disabled="chordStore.octaveOffset >= 2">
+                +1
+              </button>
+            </div>
+          </div>
+        </div>
+        
         <!-- 调性选择器（重新设计） -->
         <div class="chord-group">
           <div class="group-row">
@@ -214,6 +245,8 @@
         <li><strong>5</strong>: 小六和弦 / <strong>⇧+5</strong>: 大六和弦</li>
         <li><strong>6</strong>: 减三和弦 / <strong>⇧+6</strong>: 增三和弦</li>
         <li><strong>7</strong>: 小九和弦 / <strong>⇧+7</strong>: 大九和弦</li>
+        <li><strong>Q</strong>: 循环切换转位 / <strong>⇧+Q</strong>: 重置为原位</li>
+        <li><strong>PgUp</strong>: 升高八度 / <strong>PgDn</strong>: 降低八度 / <strong>Home</strong>: 重置八度</li>
       </ul>
     </div>
   </div>
@@ -221,7 +254,7 @@
 
 <script setup lang="ts">
 import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
-import { Chord, ChordType, ALL_NOTES } from '@/utils/music';
+import { Chord, ChordType, ALL_NOTES, getPreferredNotation } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useChordStore } from '@/stores/chordStore'
 import { getInterval } from '@/utils/music';
@@ -428,7 +461,7 @@ function getChordLabel(mapping: { root: string, type: ChordType, octave?: number
             chordLabel += '/b1';
           } else {
             // 如果实在找不到合适的表示，使用原始音名
-            chordLabel += '/' + bassNote;
+            chordLabel += '/' + getPreferredNotation(bassNote);
           }
         }
       }
@@ -502,11 +535,11 @@ function handleNumberKey(key: string, withShift: boolean = false) {
 function getNoteFromKey(key: string): string {
   if (key === 'hidden') return '';
   const noteMap: Record<string, string> = {
-    'e': 'C#',
-    'r': 'D#',
-    'y': 'F#',
-    'u': 'G#',
-    'i': 'A#'
+    'e': 'Db',  // 原来是C#
+    'r': 'Eb',  // 原来是D#
+    'y': 'Gb',  // 原来是F#
+    'u': 'Ab',  // 原来是G#
+    'i': 'Bb'   // 原来是A#
   };
   return noteMap[key] || '';
 }
@@ -535,6 +568,40 @@ function handleInversion(inversion: number) {
     // 设置到指定转位
     while (chordStore.currentInversion !== inversion) {
       chordStore.handleInversion(false);
+    }
+  }
+}
+
+// 处理八度控制
+function handleOctaveUp() {
+  chordStore.octaveUp();
+  // 当没有按键按下时，模拟点击当前最后按下的键以更新和弦显示
+  if (mouseActiveKey.value) {
+    const mapping = chordMapping.value[mouseActiveKey.value];
+    if (mapping) {
+      handleMouseDown(mouseActiveKey.value, mapping);
+    }
+  }
+}
+
+function handleOctaveDown() {
+  chordStore.octaveDown();
+  // 当没有按键按下时，模拟点击当前最后按下的键以更新和弦显示
+  if (mouseActiveKey.value) {
+    const mapping = chordMapping.value[mouseActiveKey.value];
+    if (mapping) {
+      handleMouseDown(mouseActiveKey.value, mapping);
+    }
+  }
+}
+
+function handleOctaveReset() {
+  chordStore.resetOctave();
+  // 当没有按键按下时，模拟点击当前最后按下的键以更新和弦显示
+  if (mouseActiveKey.value) {
+    const mapping = chordMapping.value[mouseActiveKey.value];
+    if (mapping) {
+      handleMouseDown(mouseActiveKey.value, mapping);
     }
   }
 }
@@ -1131,5 +1198,42 @@ function handleInversion(inversion: number) {
   font-size: 0.7rem;
   opacity: 0.7;
   margin-left: 4px;
+}
+
+/* 八度控制样式 */
+.octave-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.octave-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 40px;
+  height: 30px;
+  background-color: var(--control-background);
+  color: var(--control-text);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 0 8px;
+}
+
+@media (max-width: 768px) {
+  .octave-display {
+    min-width: 36px;
+    height: 28px;
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .octave-display {
+    min-width: 30px;
+    height: 26px;
+    font-size: var(--font-size-xs);
+  }
 }
 </style> 

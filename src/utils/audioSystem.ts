@@ -191,6 +191,7 @@ export default class AudioSystem {
     // 添加到活跃音符集合
     noteNames.forEach(note => this.activeNotes.add(note));
     
+    
     // 播放和弦
     const velocity = 0.5 + (this.defaultSettings.dynamics * 0.5);
     this.sampler.triggerAttackRelease(noteNames, duration, undefined, velocity);
