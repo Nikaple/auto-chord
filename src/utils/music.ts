@@ -79,14 +79,6 @@ export class Chord {
     this.type = type;
     this.octave = octave;
     this.notes = this.calculateChordNotes();
-    
-    // 添加日志用于调试八度
-    console.log('创建和弦:', {
-      rootName,
-      octave,
-      type,
-      notes: this.noteNames
-    });
   }
 
   // 获取和弦的音符名称数组

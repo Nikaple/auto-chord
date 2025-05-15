@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useChordStore, KEY_TO_DEGREE } from '../../../src/stores/chordStore'
 import AudioSystem from '../../../src/utils/audioSystem'
-
-// 导入实际的ChordType，而不是从模拟的模块导入
 import { ChordType } from '../../../src/utils/music'
 
 // 模拟AudioSystem
@@ -48,7 +46,7 @@ vi.mock('../../../src/utils/music', async () => {
       MINOR_NINTH: 'minor_ninth'
     },
     ALL_NOTES: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
-    getChordByDegree: vi.fn().mockImplementation((tonic, degree, octave, forceType) => {
+    getChordByDegree: vi.fn().mockImplementation((tonic, degree, _octave, forceType) => {
       // 简单模拟当键是's'(第一级)且调性是'G'时，返回根音为'G'的和弦
       if (degree === 1 && tonic === 'G') {
         return { root: 'G', type: forceType || ChordType.MAJOR };

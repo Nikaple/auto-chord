@@ -95,7 +95,6 @@ export const useChordStore = defineStore('chord', () => {
   // 转调函数
   function transpose(newKey: string) {
     if (ALL_NOTES.includes(newKey)) {
-      const oldKey = currentKey.value;
       currentKey.value = newKey;
       
       // 如果有正在播放的和弦，更新它
@@ -104,17 +103,6 @@ export const useChordStore = defineStore('chord', () => {
         const pressedKey = Array.from(pressedKeys)[0];
         if (pressedKey && KEY_TO_CHORD.value[pressedKey]) {
           const chord = applyModifiers(KEY_TO_CHORD.value[pressedKey]);
-          
-          // 记录转调前后八度的变化
-          console.log('转调:', {
-            from: oldKey,
-            to: newKey,
-            key: pressedKey,
-            previousOctave: currentChord.value.octave,
-            newOctave: chord.octave,
-            notes: chord.noteNames
-          });
-          
           playChord(chord);
         }
       }
@@ -417,12 +405,6 @@ export const useChordStore = defineStore('chord', () => {
     if (pressedKeys.size > 0) {
       const pressedKey = Array.from(pressedKeys)[0];
       if (pressedKey && KEY_TO_CHORD.value[pressedKey]) {
-        console.log('更新当前和弦:', {
-          pressedKey,
-          octaveOffset: octaveOffset.value,
-          chordConfig: KEY_TO_CHORD.value[pressedKey]
-        });
-        
         const chord = applyModifiers(KEY_TO_CHORD.value[pressedKey]);
         playChord(chord);
       }

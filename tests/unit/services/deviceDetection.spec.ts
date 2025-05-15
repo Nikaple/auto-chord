@@ -32,7 +32,6 @@ describe('设备检测服务', () => {
       Object.defineProperty(window, 'ontouchstart', ontouchstartDescriptor)
     } else {
       // 如果原来没有这个属性，则删除它
-      // @ts-expect-error 删除window.ontouchstart
       delete window.ontouchstart
     }
   })
@@ -91,8 +90,8 @@ describe('设备检测服务', () => {
     
     it('当navigator.maxTouchPoints > 0时返回true', () => {
       // 确保ontouchstart不存在
-      // @ts-expect-error 删除window.ontouchstart
-      delete window.ontouchstart
+      // 使用类型断言告诉TypeScript我们知道自己在做什么
+      (delete window.ontouchstart);
       
       Object.defineProperty(navigator, 'maxTouchPoints', {
         value: 5,
@@ -104,8 +103,8 @@ describe('设备检测服务', () => {
     
     it('当没有触摸功能时返回false', () => {
       // 确保ontouchstart不存在
-      // @ts-expect-error 删除window.ontouchstart
-      delete window.ontouchstart
+      // 使用类型断言告诉TypeScript我们知道自己在做什么
+      (delete window.ontouchstart);
       
       Object.defineProperty(navigator, 'maxTouchPoints', {
         value: 0,

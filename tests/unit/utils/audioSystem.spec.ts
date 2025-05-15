@@ -67,14 +67,14 @@ describe('AudioSystem类', () => {
     // @ts-expect-error 访问私有属性
     audioSystem.sampler = new Tone.Sampler()
     
-    // 添加模拟对象
+    // 添加模拟对象，使用类型断言解决类型检查问题
     // @ts-expect-error 访问私有属性
     audioSystem.eq = {
-      high: { value: 0 },
-      mid: { value: 0 },
-      low: { value: 0 },
+      high: { value: 0, name: 'high', input: {}, units: 'decibels', convert: vi.fn(), dispose: vi.fn() },
+      mid: { value: 0, name: 'mid', input: {}, units: 'decibels', convert: vi.fn(), dispose: vi.fn() },
+      low: { value: 0, name: 'low', input: {}, units: 'decibels', convert: vi.fn(), dispose: vi.fn() },
       connect: vi.fn()
-    }
+    } as unknown as Tone.EQ3
     
     // @ts-expect-error 访问私有属性
     audioSystem.compressor = {
@@ -84,9 +84,16 @@ describe('AudioSystem类', () => {
     
     // @ts-expect-error 访问私有属性
     audioSystem.reverb = {
-      wet: { value: 0 },
+      wet: { 
+        value: 0, 
+        name: 'wet', 
+        override: vi.fn(),
+        _constantSource: {}, 
+        output: {},
+        dispose: vi.fn()
+      },
       toDestination: vi.fn().mockReturnThis()
-    }
+    } as unknown as Tone.Reverb
   })
   
   it('应正确初始化音频系统', async () => {
@@ -311,10 +318,10 @@ describe('AudioSystem类', () => {
   
   it('应正确处理采样器初始化过程', async () => {
     // 简化测试
-    const audioSystem = new AudioSystem();
-    vi.spyOn(audioSystem, 'init').mockResolvedValue(true);
+    const newAudioSystem = new AudioSystem();
+    vi.spyOn(newAudioSystem, 'init').mockResolvedValue(true);
     
-    const result = await audioSystem.init();
+    const result = await newAudioSystem.init();
     expect(result).toBe(true);
   }, 1000);  // 增加超时时间
   
@@ -332,7 +339,7 @@ describe('AudioSystem类', () => {
   
   it('应正确处理音符名称和octave', () => {
     // 简化测试
-    const note = new Note('A', 4);
+    // 不需要创建未使用的变量
     const audioSystem = new AudioSystem();
     
     // 只检查方法存在
@@ -341,7 +348,7 @@ describe('AudioSystem类', () => {
   
   it('应正确处理不同的和弦类型', () => {
     // 简化测试
-    const chord = new Chord('C', 4, ChordType.MAJOR);
+    // 不需要创建未使用的变量
     const audioSystem = new AudioSystem();
     
     // 只检查方法存在
@@ -350,7 +357,7 @@ describe('AudioSystem类', () => {
   
   it('应正确处理不同的播放持续时间', () => {
     // 简化测试
-    const note = new Note('C', 4);
+    // 不需要创建未使用的变量
     const audioSystem = new AudioSystem();
     
     // 只检查方法存在

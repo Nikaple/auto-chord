@@ -26,11 +26,11 @@ const emit = defineEmits<{
 // 根据音量大小显示不同的图标
 const volumeIcon = computed(() => {
   if (props.volume === 0) {
-    return 'volume-xmark';
+    return ['fas', 'volume-xmark'];
   } else if (props.volume < 0.5) {
-    return 'volume-low';
+    return ['fas', 'volume-low'];
   } else {
-    return 'volume-high';
+    return ['fas', 'volume-high'];
   }
 });
 

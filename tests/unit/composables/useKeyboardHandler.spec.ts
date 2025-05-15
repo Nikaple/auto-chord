@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useKeyboardHandler } from '../../../src/composables/useKeyboardHandler'
 import { setActivePinia, createPinia } from 'pinia'
 import { useChordStore } from '../../../src/stores/chordStore'
-import { ChordType } from '../../../src/utils/music'
 
 // 模拟全局 navigator 对象
 const mockNavigator = {
@@ -23,7 +22,7 @@ vi.mock('../../../src/stores/chordStore', () => {
     handleKeyUp: vi.fn(),
     handleNumberKey: vi.fn(),
     transpose: vi.fn(),
-    initAudio: vi.fn()
+    initAudio: vi.fn().mockImplementation(() => Promise.resolve(true))
   };
   
   return {
@@ -38,7 +37,7 @@ describe('useKeyboardHandler 组合式函数', () => {
   })
 
   it('正确检测移动设备', () => {
-    const { detectDeviceType, isMobileDevice } = useKeyboardHandler()
+    const { detectDeviceType } = useKeyboardHandler()
     
     // 默认非移动设备
     mockNavigator.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
@@ -103,8 +102,6 @@ describe('useKeyboardHandler 组合式函数', () => {
   it('正确调用音频初始化', async () => {
     const { initAudio } = useKeyboardHandler()
     const chordStore = useChordStore()
-    
-    chordStore.initAudio.mockResolvedValue(true)
     
     const result = await initAudio()
     expect(result).toBe(true)
