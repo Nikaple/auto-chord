@@ -1,0 +1,13 @@
+{
+  "extends": ["eslint"],
+  "files": {
+    "include": ["**/*.{js,jsx,ts,tsx,vue}"],
+    "exclude": ["node_modules/**", "dist/**"]
+  },
+  "rules": {
+    "suspicious": "warn",
+    "correctness": "error",
+    "complexity": "warn",
+    "style": "warn"
+  }
+} 

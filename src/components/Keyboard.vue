@@ -253,11 +253,11 @@
 </template>
 
 <script setup lang="ts">
-import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
-import { Chord, ChordType, ALL_NOTES, getPreferredNotation } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useChordStore } from '@/stores/chordStore'
 import { getInterval } from '@/utils/music';
+import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
+import { Chord, ChordType, ALL_NOTES, getPreferredNotation } from '@/utils/music';
 
 // 使用和弦 store
 const chordStore = useChordStore()
@@ -285,36 +285,29 @@ function preventDefaultKeys(e: KeyboardEvent) {
   }
 }
 
+// 声明事件处理函数
+const handleKeyDown = (e: KeyboardEvent) => {
+  preventDefaultKeys(e);  // 先阻止默认行为
+  chordStore.handleKeyDown(e);
+};
+
+const handleBlur = () => {
+  chordStore.stopChord();
+};
+
 // 挂载和卸载全局事件监听器
 onMounted(() => {
   // 添加事件监听器
-  const handleKeyDownWithPrevent = (e: KeyboardEvent) => {
-    preventDefaultKeys(e);  // 先阻止默认行为
-    chordStore.handleKeyDown(e);
-  };
-  
-  window.addEventListener('keydown', handleKeyDownWithPrevent);
+  window.addEventListener('keydown', handleKeyDown);
   window.addEventListener('keyup', chordStore.handleKeyUp);
-  
-  // 页面失去焦点时停止所有声音，但保留和弦显示
-  window.addEventListener('blur', () => {
-    chordStore.stopChord();
-  });
-  
-  // 保存事件处理函数引用
-  (window as any).__handleKeyDownWithPrevent = handleKeyDownWithPrevent;
+  window.addEventListener('blur', handleBlur);
 });
 
 onUnmounted(() => {
-  // 使用保存的事件处理函数引用
-  window.removeEventListener('keydown', (window as any).__handleKeyDownWithPrevent);
+  // 移除事件监听器
+  window.removeEventListener('keydown', handleKeyDown);
   window.removeEventListener('keyup', chordStore.handleKeyUp);
-  window.removeEventListener('blur', () => {
-    chordStore.stopChord();
-  });
-  
-  // 清理引用
-  delete (window as any).__handleKeyDownWithPrevent;
+  window.removeEventListener('blur', handleBlur);
 });
 
 // 第三排七和弦按键
