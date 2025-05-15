@@ -215,8 +215,6 @@
         <li><strong>6</strong>: 减三和弦 / <strong>⇧+6</strong>: 增三和弦</li>
         <li><strong>7</strong>: 小九和弦 / <strong>⇧+7</strong>: 大九和弦</li>
       </ul>
-      <p>白键（S D F G H J K L）和黑键（E R Y U I）用于播放和弦。</p>
-      <p>第三排（Z X C V B N M ,）用于播放七和弦。</p>
     </div>
   </div>
 </template>
@@ -226,6 +224,7 @@ import { useKeyboardHandler } from '@/composables/useKeyboardHandler'
 import { Chord, ChordType, ALL_NOTES } from '@/utils/music';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useChordStore } from '@/stores/chordStore'
+import { getInterval } from '@/utils/music';
 
 // 使用和弦 store
 const chordStore = useChordStore()
@@ -316,13 +315,130 @@ function getChordLabel(mapping: { root: string, type: ChordType, octave?: number
   const chord = new Chord(mapping.root, mapping.octave || 4, previewType);
   chord.setInversion(chordStore.currentInversion);
   
-  // 获取完整和弦表示法
-  let fullNotation = chord.getInversionNotation();
+  // 获取当前调性
+  const currentKey = chordStore.currentKey;
   
-  // 在斜杠前后添加零宽空格，允许在斜杠处折行
-  fullNotation = fullNotation.replace(/\//g, '\u200B/').replace(mapping.root, mapping.root + '\u200B');
+  // 计算和弦根音相对于当前调性的音程
+  const interval = getInterval(currentKey, chord.root.name);
   
-  return fullNotation;
+  // 大调音阶的音程模式：2,2,1,2,2,2,1
+  const majorScaleIntervals = [0, 2, 4, 5, 7, 9, 11];
+  
+  // 找出和弦在音阶中的级数
+  let degree = 0;
+  let isHalfStep = false;
+  
+  // 如果音程正好在音阶上
+  const scaleIndex = majorScaleIntervals.indexOf(interval);
+  if (scaleIndex !== -1) {
+    degree = scaleIndex + 1;
+  } else {
+    // 找出最接近的下方音阶音
+    for (let i = 0; i < majorScaleIntervals.length; i++) {
+      if (majorScaleIntervals[i] > interval) {
+        degree = i;
+        isHalfStep = true;
+        break;
+      }
+    }
+  }
+  
+  // 使用阿拉伯数字表示级数
+  let chordLabel = degree.toString();
+  
+  // 根据和弦类型添加后缀
+  if (chord.type === ChordType.MINOR) {
+    chordLabel += 'm';
+  } else if (chord.type === ChordType.MINOR_SEVENTH) {
+    chordLabel += '<sup>m7</sup>';
+  } else if (chord.type === ChordType.MINOR_SIXTH) {
+    chordLabel += '<sup>m6</sup>';
+  } else if (chord.type === ChordType.MINOR_NINTH) {
+    chordLabel += '<sup>m9</sup>';
+  } else if (chord.type === ChordType.DIMINISHED) {
+    chordLabel += '<sup>°</sup>';
+  } else if (chord.type === ChordType.AUGMENTED) {
+    chordLabel += '<sup>+</sup>';
+  } else if (chord.type === ChordType.SUSPENDED_SECOND) {
+    chordLabel += '<sup>2</sup>';
+  } else if (chord.type === ChordType.SUSPENDED_FOURTH) {
+    chordLabel += '<sup>4</sup>';
+  } else if (chord.type === ChordType.DOMINANT_SEVENTH) {
+    // 使用上标7
+    chordLabel += '<sup>7</sup>';
+  } else if (chord.type === ChordType.MAJOR_SEVENTH) {
+    // 使用上标M7
+    chordLabel += '<sup>M7</sup>';
+  } else if (chord.type === ChordType.MINOR_MAJOR_SEVENTH) {
+    // 对于小大七和弦，先添加m然后添加上标M7
+    chordLabel += '<sup>mM7</sup>';
+  } else if (chord.type === ChordType.HALF_DIMINISHED_SEVENTH) {
+    // 半减七和弦
+    chordLabel += '<sup>ø7</sup>';
+  } else if (chord.type === ChordType.SIXTH) {
+    chordLabel += '<sup>6</sup>';
+  } else if (chord.type === ChordType.MAJOR_NINTH) {
+    chordLabel += '<sup>9</sup>';
+  }
+  
+  // 添加升降记号
+  if (isHalfStep) {
+    chordLabel = '#' + chordLabel;
+  }
+  
+  // 如果不是原位，添加转位标记
+  if (chordStore.currentInversion > 0) {
+    const inversionNotes = chord.notes;
+    if (inversionNotes.length > 0) {
+      // 获取最低音
+      const bassNote = inversionNotes[0].name;
+      
+      // 计算最低音相对于当前调性的级数
+      const bassInterval = getInterval(currentKey, bassNote);
+      const bassScaleIndex = majorScaleIntervals.indexOf(bassInterval);
+      
+      // 如果在音阶上找到这个音，使用级数表示
+      if (bassScaleIndex !== -1) {
+        const bassDegree = bassScaleIndex + 1;
+        chordLabel += '/' + bassDegree;
+      } else {
+        // 如果不在音阶上，尝试找到最接近的音阶级数
+        let found = false;
+        for (let i = 0; i < majorScaleIntervals.length - 1; i++) {
+          // 如果音程在两个音阶音之间
+          if (bassInterval > majorScaleIntervals[i] && bassInterval < majorScaleIntervals[i+1]) {
+            // 如果更接近上方的音阶音，使用降号
+            if (bassInterval - majorScaleIntervals[i] > majorScaleIntervals[i+1] - bassInterval) {
+              chordLabel += '/b' + (i + 2); // i+2是因为下一个音阶级数是i+1+1
+            } else {
+              // 否则使用升号
+              chordLabel += '/#' + (i + 1);
+            }
+            found = true;
+            break;
+          }
+        }
+        
+        // 特殊情况处理
+        if (!found) {
+          // 如果在最高音和最低音之间
+          if (bassInterval > majorScaleIntervals[majorScaleIntervals.length - 1]) {
+            chordLabel += '/#7';
+          } else if (bassInterval < majorScaleIntervals[0]) {
+            chordLabel += '/b1';
+          } else {
+            // 如果实在找不到合适的表示，使用原始音名
+            chordLabel += '/' + bassNote;
+          }
+        }
+      }
+    }
+  }
+  
+  // 在斜杠前后添加零宽空格，允许在斜杠处折行，但不要替换 HTML 的闭合标签
+  chordLabel = chordLabel.replace(/([^<])\/([^>])/g, '$1\u200B/\u200B$2');
+  
+  return chordLabel;
 }
 
 // 检查键是否活跃 - 修改为包含键盘和鼠标激活的按键

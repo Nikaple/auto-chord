@@ -195,19 +195,19 @@ function getChordFunction(chord: Chord | null): string {
       functionNotation = 'D';
       break;
     case 2: // II级 - 下属和弦的平行小三和弦
-      functionNotation = 'S II';
+      functionNotation = 'SD<sub>II</sub>';
       break;
-    case 6: // VI级 - 主和弦的平行小三和弦
-      functionNotation = 'T VI';
+    case 6: // VI级 - 主和弦的平行小三和弦，同时具有T和S属性
+      functionNotation = 'TS<sub>VI</sub>';
       break;
     case 3: // III级 - 属和弦的平行小三和弦
-      functionNotation = 'D III';
+      functionNotation = 'TD<sub>III</sub>';
       break;
     case 7: // VII级 - 导七和弦
       if (chord.type === ChordType.DIMINISHED) {
-        functionNotation = 'D VII<sup>o</sup>';
+        functionNotation = 'D<sub>VII</sub><sup>o</sup>';
       } else {
-        functionNotation = 'D VII';
+        functionNotation = 'D<sub>VII</sub>';
       }
       break;
     default:
